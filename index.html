@@ -1,0 +1,524 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2487.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="bg"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Калкулатор за оценка на имоти&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Datepicker CSS --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker.min.css"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Inter', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #0f172a; /* Dark Blue (slate-900) */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #e2e8f0; /* White/Light Blue text (slate-200) */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>#map {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>height: 100%;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>min-height: 350px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 0.75rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>/* REMOVED: filter property to make map light */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.leaflet-control-zoom { display: none; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-input {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #1e293b; /* slate-800 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #334155; /* slate-700 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #e2e8f0; /* slate-200 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.2s ease-in-out;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-input:focus {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #1e293b;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-color: #38bdf8; /* Light Blue (sky-400) */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-input:disabled {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #334155; /* slate-700 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: not-allowed;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>opacity: 0.5;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.btn-primary {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #0ea5e9; /* sky-500 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #ffffff;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 700;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.3s ease-in-out;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.btn-primary:hover {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #38bdf8; /* sky-400 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transform: translateY(-2px);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.btn-secondary {</p>
+<p class="p1"><span class="Apple-converted-space">             </span>background-color: transparent;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>border: 2px solid #0ea5e9; /* sky-500 */</p>
+<p class="p1"><span class="Apple-converted-space">             </span>color: #0ea5e9; /* sky-500 */</p>
+<p class="p1"><span class="Apple-converted-space">             </span>font-weight: 700;</p>
+<p class="p1"><span class="Apple-converted-space">             </span>transition: all 0.3s ease-in-out;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.btn-secondary:hover {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #0ea5e9;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #ffffff;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transform: translateY(-2px);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.datepicker-picker {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #1e293b; /* slate-800 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #334155; /* slate-700 */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.datepicker-header .datepicker-title, .datepicker-header .prev-btn, .datepicker-header .next-btn, .datepicker-view .dow, .datepicker-view .day, .datepicker-view .month, .datepicker-view .year {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #cbd5e1; /* slate-300 */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.datepicker-header .prev-btn:hover, .datepicker-header .next-btn:hover { background-color: #334155; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.datepicker-cell.selected, .datepicker-cell.selected:hover { background-color: #0ea5e9; color: #fff; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.datepicker-cell:not(.disabled):not(.selected):hover { background-color: #334155; } /* slate-700 */</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>.role-btn.active {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #38bdf8; /* sky-400 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #0f172a; /* slate-900 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 1px 3px rgba(0,0,0,0.1);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.number-stepper button {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #334155; /* slate-700 */</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #cbd5e1; /* slate-300 */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.number-stepper button:hover { background-color: #475569; } /* slate-600 */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body class="bg-slate-900"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="container mx-auto p-4 sm:p-6 lg:p-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="max-w-6xl mx-auto bg-slate-800 rounded-2xl shadow-2xl shadow-black/20 overflow-hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="grid grid-cols-1 lg:grid-cols-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;!-- Left Column: Form --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="p-8 sm:p-10"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2"&gt;Оценете своя имот&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-slate-300 mb-8"&gt;Получете мигновена, базирана на данни, оценка на вашия имот.&lt;/p&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="space-y-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;!-- Buyer/Seller Toggle --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;label class="block text-sm font-medium text-slate-300 mb-2"&gt;Вие сте:&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="flex w-full gap-2 bg-slate-700/50 p-1 rounded-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;button id="sellerBtn" type="button" class="role-btn text-slate-300 flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-colors duration-200"&gt;Продавач&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;button id="buyerBtn" type="button" class="role-btn text-slate-300 flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-colors duration-200"&gt;Купувач&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;input type="hidden" id="userRole" name="userRole" value="Seller"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;label for="address" class="block text-sm font-medium text-slate-300 mb-1"&gt;Адрес на имота&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;input type="text" id="address" name="address" class="w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="напр., бул. Витоша 1, София"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="grid grid-cols-1 sm:grid-cols-2 gap-5"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;label for="area" class="block text-sm font-medium text-slate-300 mb-1"&gt;Квадратура (кв. м)&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;input type="number" id="area" name="area" class="w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="120"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;label for="propertyType" class="block text-sm font-medium text-slate-300 mb-1"&gt;Тип на имота&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;select id="propertyType" name="propertyType" class="w-full form-input px-4 py-2.5 rounded-lg appearance-none"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;option value="Apartment"&gt;Апартамент&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;option value="House"&gt;Къща&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;option value="Plot"&gt;Парцел&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;option value="Other"&gt;Друго&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/select&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400 mt-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"&gt;&lt;path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/&gt;&lt;/svg&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                        </span></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;!-- Conditional Fields Container --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="space-y-5 transition-all duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div id="bedroomsWrapper"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;label for="bedrooms" class="block text-sm font-medium text-slate-300 mb-1"&gt;Спални&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;input type="number" id="bedrooms" name="bedrooms" class="w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div id="otherTypeWrapper" class="hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;label for="otherTypeSelect" class="block text-sm font-medium text-slate-300 mb-1"&gt;Уточнен тип&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div class="relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;select id="otherTypeSelect" name="otherTypeSelect" class="w-full form-input px-4 py-2.5 rounded-lg appearance-none"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;option value="ResidentialBuilding"&gt;Жилищна сграда&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;option value="Office"&gt;Офис&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;option value="BusinessBuilding"&gt;Бизнес сграда&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;option value="VacationProperty"&gt;Ваканционен имот&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/select&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"&gt;&lt;path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/&gt;&lt;/svg&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div id="parkingDetailsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-5"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;label for="garage" class="block text-sm font-medium text-slate-300 mb-1"&gt;Гараж&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div class="flex items-center gap-2 number-stepper"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;button type="button" data-action="decrement" data-target="garage"&gt;-&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;input type="number" id="garage" name="garage" class="w-full form-input" value="0" readonly&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;button type="button" data-action="increment" data-target="garage"&gt;+&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;label for="parkingSpot" class="block text-sm font-medium text-slate-300 mb-1"&gt;Паркомясто&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div class="flex items-center gap-2 number-stepper"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;button type="button" data-action="decrement" data-target="parkingSpot"&gt;-&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;input type="number" id="parkingSpot" name="parkingSpot" class="w-full form-input" value="0" readonly&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;button type="button" data-action="increment" data-target="parkingSpot"&gt;+&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div id="yearWrapper"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;label for="year" class="block text-sm font-medium text-slate-300 mb-1"&gt;Година на строеж&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;input type="text" id="year" name="year" class="w-full form-input px-4 py-2.5 rounded-lg cursor-pointer placeholder:text-slate-400" placeholder="Изберете година"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button id="calculateBtn" class="w-full btn-primary text-white font-bold py-3 px-6 rounded-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>Изчисли оценка</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;!-- Right Column: Map and Result --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="bg-slate-900/50 p-4 flex flex-col gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div id="map" class="flex-grow"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div id="result" class="hidden p-6 bg-slate-800 rounded-xl text-center border border-slate-700"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                         </span>&lt;p class="text-slate-300 mb-2"&gt;Очаквана пазарна стойност:&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p id="valuation" class="text-5xl font-extrabold text-sky-400"&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p id="valuation-range" class="text-sm text-slate-300 mt-1"&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="mt-4 pt-4 border-t border-slate-700"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-xs text-slate-500 italic"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;span class="font-bold text-amber-500"&gt;!&lt;/span&gt; Внимание: Посочените цени са индикативни и подлежат на по-задълбочено проучване. Те не представляват окончателна оферта.</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                     </span>&lt;div id="error-message" class="hidden p-4 bg-red-500/20 rounded-lg text-center text-red-400 font-medium border border-red-500/30"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;!-- Contact Form Section --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="border-t border-slate-700 bg-slate-800"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="max-w-3xl mx-auto p-8 sm:p-10"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h2 class="text-2xl font-bold text-white mb-4 text-center"&gt;Имате нужда от консултация?&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-slate-300 mb-6 text-center"&gt;Попълнете формата по-долу и наш експерт ще се свърже с Вас за допълнителна информация и съдействие.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;form id="contactForm" class="mx-auto space-y-4" novalidate&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="grid grid-cols-1 sm:grid-cols-2 gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;label for="contactName" class="block text-sm font-medium text-slate-300"&gt;Вашето име&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;input type="text" id="contactName" name="contactName" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Иван Иванов"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;label for="contactEmail" class="block text-sm font-medium text-slate-300"&gt;Имейл адрес&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;input type="email" id="contactEmail" name="contactEmail" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="vasia-email@example.com"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;label for="contactMessage" class="block text-sm font-medium text-slate-300"&gt;Коментар или запитване&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;textarea id="contactMessage" name="contactMessage" rows="4" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Бих искал/а повече информация относно..."&gt;&lt;/textarea&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;button type="submit" id="sendFeedbackBtn" class="w-full btn-secondary font-bold py-3 px-6 rounded-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>Изпрати запитване</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/form&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">    </span></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Notification element for feedback --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="notification" class="fixed top-5 right-5 bg-sky-500 text-slate-900 font-bold py-3 px-5 rounded-lg shadow-lg transition-transform duration-300 translate-x-[120%] z-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>Подготвяме съобщението...</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Datepicker JS --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Year Picker Initialization ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const yearpickerEl = document.getElementById('year');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let datepicker = new Datepicker(yearpickerEl, {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>buttonClass: 'btn',</p>
+<p class="p1"><span class="Apple-converted-space">            </span>format: 'yyyy',</p>
+<p class="p1"><span class="Apple-converted-space">            </span>pickLevel: 2,</p>
+<p class="p1"><span class="Apple-converted-space">            </span>autohide: true,</p>
+<p class="p1"><span class="Apple-converted-space">            </span>maxDate: new Date().getFullYear().toString()</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});<span class="Apple-converted-space"> </span></p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Role Selection Logic ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const sellerBtn = document.getElementById('sellerBtn');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const buyerBtn = document.getElementById('buyerBtn');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const userRoleInput = document.getElementById('userRole');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function setActiveRole(role) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (role === 'Seller') {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>sellerBtn.classList.add('active');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>buyerBtn.classList.remove('active');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>userRoleInput.value = 'Seller';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else { // Buyer</p>
+<p class="p1"><span class="Apple-converted-space">                </span>buyerBtn.classList.add('active');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>sellerBtn.classList.remove('active');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>userRoleInput.value = 'Buyer';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>setActiveRole('Seller');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>sellerBtn.addEventListener('click', () =&gt; setActiveRole('Seller'));</p>
+<p class="p1"><span class="Apple-converted-space">        </span>buyerBtn.addEventListener('click', () =&gt; setActiveRole('Buyer'));</p>
+<p class="p2"><br></p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Map Initialization ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const map = L.map('map', {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>center: [42.6977, 23.3219],</p>
+<p class="p1"><span class="Apple-converted-space">            </span>zoom: 13,</p>
+<p class="p1"><span class="Apple-converted-space">            </span>zoomControl: false<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>attribution: '&amp;copy; &lt;a href="https://www.openstreetmap.org/copyright"&gt;OpenStreetMap&lt;/a&gt; contributors'</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}).addTo(map);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>L.control.zoom({ position: 'bottomright' }).addTo(map);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>let marker;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const addressInput = document.getElementById('address');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const calculateBtn = document.getElementById('calculateBtn');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const resultDiv = document.getElementById('result');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const valuationEl = document.getElementById('valuation');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const valuationRangeEl = document.getElementById('valuation-range');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const errorMessageEl = document.getElementById('error-message');</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Handle Property Type Change ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const propertyTypeSelect = document.getElementById('propertyType');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const bedroomsWrapper = document.getElementById('bedroomsWrapper');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const parkingDetailsContainer = document.getElementById('parkingDetailsContainer');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const yearWrapper = document.getElementById('yearWrapper');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const otherTypeWrapper = document.getElementById('otherTypeWrapper');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function toggleFields() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const type = propertyTypeSelect.value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const show = (el) =&gt; el.classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const hide = (el) =&gt; el.classList.add('hidden');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>hide(bedroomsWrapper);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>hide(parkingDetailsContainer);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>hide(yearWrapper);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>hide(otherTypeWrapper);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (type === 'Apartment' || type === 'House') {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>show(bedroomsWrapper);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>show(parkingDetailsContainer);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>show(yearWrapper);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else if (type === 'Plot') {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>// All are hidden</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else if (type === 'Other') {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>show(otherTypeWrapper);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>show(yearWrapper);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>propertyTypeSelect.addEventListener('change', toggleFields);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>toggleFields();</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Number Stepper Logic ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.querySelectorAll('.number-stepper').forEach(stepper =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const input = stepper.querySelector('input');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>stepper.addEventListener('click', (e) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (e.target.matches('button')) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const action = e.target.dataset.action;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>let currentValue = parseInt(input.value, 10);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (action === 'increment') {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>currentValue++;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>} else if (action === 'decrement' &amp;&amp; currentValue &gt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>currentValue--;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>input.value = currentValue;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Calculation Logic ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function calculateValuation() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>resultDiv.classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>errorMessageEl.classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>errorMessageEl.textContent = '';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const area = parseFloat(document.getElementById('area').value);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const bedrooms = parseInt(document.getElementById('bedrooms').value);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const garage = parseInt(document.getElementById('garage').value);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const parkingSpot = parseInt(document.getElementById('parkingSpot').value);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const propertyType = document.getElementById('propertyType').value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const otherType = document.getElementById('otherTypeSelect').value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const year = parseInt(document.getElementById('year').value);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const addressVal = document.getElementById('address').value;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>let errorParts = [];</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (isNaN(area) || area &lt;= 0) errorParts.push("валидна квадратура");</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (propertyType === 'Apartment' || propertyType === 'House') {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (isNaN(bedrooms) || bedrooms &lt; 0) errorParts.push("валиден брой спални");</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (isNaN(year) || year &lt; 1800 || year &gt; new Date().getFullYear()) errorParts.push("валидна година на строеж");</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else if (propertyType === 'Other') {</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>if (isNaN(year) || year &lt; 1800 || year &gt; new Date().getFullYear()) errorParts.push("валидна година на строеж");</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!addressVal) errorParts.push("адрес");</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (errorParts.length &gt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>errorMessageEl.textContent = `Моля, въведете ${errorParts.join(', ')}.`;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>errorMessageEl.classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return false;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const basePricePerSqM = 1500;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let typeMultiplier = 1.0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let bedroomBonus = 0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let garageBonus = 0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let parkingSpotBonus = 0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let ageFactor = 1.0;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (propertyType === 'House') typeMultiplier = 1.2;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (propertyType === 'Plot') typeMultiplier = 0.5;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (propertyType === 'Other') {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>switch(otherType) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>case 'ResidentialBuilding': typeMultiplier = 1.5; break;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>case 'Office': typeMultiplier = 1.3; break;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>case 'BusinessBuilding': typeMultiplier = 1.8; break;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>case 'VacationProperty': typeMultiplier = 1.1; break;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (propertyType === 'Apartment' || propertyType === 'House') {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>bedroomBonus = (bedrooms || 0) * 10000;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>garageBonus = (garage || 0) * 15000;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>parkingSpotBonus = (parkingSpot || 0) * 5000;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}<span class="Apple-converted-space"> </span></p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (propertyType !== 'Plot') {</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>const currentYear = new Date().getFullYear();</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>const age = currentYear - year;</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>if (age &gt; 50) { ageFactor = 0.8; } else if (age &lt; 5) { ageFactor = 1.1; }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const estimatedValue = (area * basePricePerSqM * typeMultiplier * ageFactor) + bedroomBonus + garageBonus + parkingSpotBonus;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const randomFactor = 1 + (Math.random() - 0.5) * 0.1;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const finalValue = Math.round(estimatedValue * randomFactor);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const lowerBound = Math.round(finalValue * 0.95);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const upperBound = Math.round(finalValue * 1.05);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>valuationEl.textContent = `€${finalValue.toLocaleString('de-DE')}`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>valuationRangeEl.textContent = `(В диапазон: €${lowerBound.toLocaleString('de-DE')} - €${upperBound.toLocaleString('de-DE')})`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>resultDiv.classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>return true;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Button Event Listener ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>calculateBtn.addEventListener('click', calculateValuation);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Reverse Geocoding on Map Click ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>map.on('click', async function(e) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const { lat, lng } = e.latlng;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (marker) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>marker.setLatLng(e.latlng);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>marker = L.marker(e.latlng).addTo(map);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&amp;lat=${lat}&amp;lon=${lng}&amp;accept-language=bg`);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const data = await response.json();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (data &amp;&amp; data.display_name) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const address = data.display_name;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>addressInput.value = address;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>marker.bindPopup(`&lt;b&gt;Избрано местоположение:&lt;/b&gt;&lt;br&gt;${address}`).openPopup();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>addressInput.value = '';</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>marker.bindPopup(`&lt;b&gt;Местоположение:&lt;/b&gt;&lt;br&gt;Адресът не е намерен.`).openPopup();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} catch (error) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>console.error('Error during reverse geocoding:', error);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>marker.bindPopup(`&lt;b&gt;Местоположение:&lt;/b&gt;&lt;br&gt;Не може да се зареди адрес.`).openPopup();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const area = parseFloat(document.getElementById('area').value);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!isNaN(area) &amp;&amp; area &gt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>calculateValuation();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Geocoding on Address Input ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>addressInput.addEventListener('change', async () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const address = addressInput.value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (address.length &lt; 3) return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&amp;q=${encodeURIComponent(address)}&amp;countrycodes=bg&amp;accept-language=bg`);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const data = await response.json();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (data &amp;&amp; data.length &gt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const { lat, lon } = data[0];</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const newLatLng = new L.LatLng(lat, lon);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>map.setView(newLatLng, 15);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (marker) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>marker.setLatLng(newLatLng);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>marker = L.marker(newLatLng).addTo(map);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                 </span>marker.bindPopup(`&lt;b&gt;Местоположение:&lt;/b&gt;&lt;br&gt;${data[0].display_name}`).openPopup();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// --- Contact Form Logic ---</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const contactForm = document.getElementById('contactForm');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>contactForm.addEventListener('submit', function(event) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>event.preventDefault();</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const name = document.getElementById('contactName').value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const email = document.getElementById('contactEmail').value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const message = document.getElementById('contactMessage').value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const yourEmail = 'info@property-experts.bg';<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const userRole = document.getElementById('userRole').value;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const subject = `Запитване от калкулатора за имоти - ${name}`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const body = `</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Здравейте,</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>Получихте ново запитване от формата за контакт:</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>Роля: ${userRole === 'Seller' ? 'Продавач' : 'Купувач'}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Име: ${name}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Имейл: ${email}</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>Съобщение:</p>
+<p class="p1"><span class="Apple-converted-space">                </span>${message}</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>---</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Информация от калкулатора (ако е попълнена):</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Адрес: ${document.getElementById('address').value || 'Няма въведен'}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Очаквана стойност: ${document.getElementById('valuation').textContent || 'Няма изчислена'}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const mailtoLink = `mailto:${yourEmail}?subject=${encodeURIComponent(subject)}&amp;body=${encodeURIComponent(body)}`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>window.location.href = mailtoLink;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const notification = document.getElementById('notification');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>notification.classList.remove('translate-x-[120%]');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>setTimeout(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>notification.classList.add('translate-x-[120%]');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}, 3000);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>contactForm.reset();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
