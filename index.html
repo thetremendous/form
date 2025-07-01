@@ -21,7 +21,6 @@
             min-height: 350px;
             border-radius: 0.75rem;
             cursor: pointer;
-            /* REMOVED: filter property to make map light */
         }
         .leaflet-control-zoom { display: none; }
         .form-input {
@@ -201,21 +200,26 @@
                 <div class="max-w-3xl mx-auto p-8 sm:p-10">
                     <h2 class="text-2xl font-bold text-white mb-4 text-center">Имате нужда от консултация?</h2>
                     <p class="text-slate-300 mb-6 text-center">Попълнете формата по-долу и наш експерт ще се свърже с Вас за допълнителна информация и съдействие.</p>
-                    <form id="contactForm" class="mx-auto space-y-4" novalidate>
+                    <!-- UPDATED: Formspree integration -->
+                    <form id="contactForm" action="https://formspree.io/f/mnnvwyqr" method="POST" class="mx-auto space-y-4">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="contactName" class="block text-sm font-medium text-slate-300">Вашето име</label>
-                                <input type="text" id="contactName" name="contactName" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Иван Иванов">
+                                <input type="text" id="contactName" name="name" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Иван Иванов">
                             </div>
                             <div>
                                 <label for="contactEmail" class="block text-sm font-medium text-slate-300">Имейл адрес</label>
-                                <input type="email" id="contactEmail" name="contactEmail" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="vasia-email@example.com">
+                                <input type="email" id="contactEmail" name="email" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="vasia-email@example.com">
                             </div>
                         </div>
                         <div>
                             <label for="contactMessage" class="block text-sm font-medium text-slate-300">Коментар или запитване</label>
-                            <textarea id="contactMessage" name="contactMessage" rows="4" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Бих искал/а повече информация относно..."></textarea>
+                            <textarea id="contactMessage" name="message" rows="4" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Бих искал/а повече информация относно..."></textarea>
                         </div>
+                        <!-- Hidden fields for extra data -->
+                        <input type="hidden" id="formUserRole" name="role">
+                        <input type="hidden" id="formAddress" name="property_address">
+                        <input type="hidden" id="formValuation" name="estimated_valuation">
                         <div>
                             <button type="submit" id="sendFeedbackBtn" class="w-full btn-secondary font-bold py-3 px-6 rounded-lg">
                                 Изпрати запитване
@@ -229,7 +233,10 @@
     
     <!-- Notification element for feedback -->
     <div id="notification" class="fixed top-5 right-5 bg-sky-500 text-slate-900 font-bold py-3 px-5 rounded-lg shadow-lg transition-transform duration-300 translate-x-[120%] z-50">
-      Подготвяме съобщението...
+      Съобщението е изпратено!
+    </div>
+     <div id="errorNotification" class="fixed top-5 right-5 bg-red-500 text-white font-bold py-3 px-5 rounded-lg shadow-lg transition-transform duration-300 translate-x-[120%] z-50">
+      Възникна грешка.
     </div>
 
     <!-- Datepicker JS -->
@@ -279,11 +286,7 @@
 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
         
-        // --- FIX: Invalidate map size after initialization ---
-        // This ensures the map renders correctly on load.
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 0);
+        setTimeout(() => { map.invalidateSize(); }, 0);
 
 
         let marker;
@@ -469,46 +472,54 @@
             }
         });
         
-        // --- Contact Form Logic ---
+        // --- UPDATED: Contact Form Logic with Formspree ---
         const contactForm = document.getElementById('contactForm');
-        contactForm.addEventListener('submit', function(event) {
+        contactForm.addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const name = document.getElementById('contactName').value;
-            const email = document.getElementById('contactEmail').value;
-            const message = document.getElementById('contactMessage').value;
-            const yourEmail = 'info@property-experts.bg'; 
-            const userRole = document.getElementById('userRole').value;
+            const form = event.target;
+            const formData = new FormData(form);
 
-            const subject = `Запитване от калкулатора за имоти - ${name}`;
-            const body = `
-                Здравейте,
-                
-                Получихте ново запитване от формата за контакт:
-                
-                Роля: ${userRole === 'Seller' ? 'Продавач' : 'Купувач'}
-                Име: ${name}
-                Имейл: ${email}
-                
-                Съобщение:
-                ${message}
-                
-                ---
-                Информация от калкулатора (ако е попълнена):
-                Адрес: ${document.getElementById('address').value || 'Няма въведен'}
-                Очаквана стойност: ${document.getElementById('valuation').textContent || 'Няма изчислена'}
-            `;
-
-            const mailtoLink = `mailto:${yourEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.location.href = mailtoLink;
-
+            // Set hidden field values before submitting
+            document.getElementById('formUserRole').value = document.getElementById('userRole').value === 'Seller' ? 'Продавач' : 'Купувач';
+            document.getElementById('formAddress').value = document.getElementById('address').value || 'Няма въведен';
+            document.getElementById('formValuation').value = document.getElementById('valuation').textContent || 'Няма изчислена';
+            
             const notification = document.getElementById('notification');
-            notification.classList.remove('translate-x-[120%]');
-            setTimeout(() => {
-                notification.classList.add('translate-x-[120%]');
-            }, 3000);
+            const errorNotification = document.getElementById('errorNotification');
+            const submitButton = document.getElementById('sendFeedbackBtn');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Изпращане...';
 
-            contactForm.reset();
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: new FormData(form), // Use the updated form data
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    notification.classList.remove('translate-x-[120%]');
+                    setTimeout(() => {
+                        notification.classList.add('translate-x-[120%]');
+                    }, 3000);
+                    form.reset();
+                    // Reset role buttons to default
+                    setActiveRole('Seller');
+                } else {
+                    throw new Error('Network response was not ok.');
+                }
+            } catch (error) {
+                errorNotification.classList.remove('translate-x-[120%]');
+                setTimeout(() => {
+                    errorNotification.classList.add('translate-x-[120%]');
+                }, 3000);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Изпрати запитване';
+            }
         });
     </script>
 </body>
