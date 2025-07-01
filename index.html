@@ -186,7 +186,7 @@
                         <p id="valuation-range" class="text-sm text-slate-300 mt-1"></p>
                         <div class="mt-4 pt-4 border-t border-slate-700">
                             <p class="text-xs text-slate-500 italic">
-                                <span class="font-bold text-amber-500">!</span> Внимание: Посочените цени са индикативни и подлежат на по-задълбочено проучване. Те не представляват окончателна оферта.
+                                <span class="font-bold text-amber-500">!</span> Внимание: Посочените цени са примерни и подлежат на по-задълбочено проучване. Те не представляват окончателна оферта.
                             </p>
                         </div>
                     </div>
@@ -207,9 +207,13 @@
                                 <input type="text" id="contactName" name="name" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Иван Иванов">
                             </div>
                             <div>
-                                <label for="contactEmail" class="block text-sm font-medium text-slate-300">Имейл адрес</label>
-                                <input type="email" id="contactEmail" name="email" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="vasia-email@example.com">
+                                <label for="contactPhone" class="block text-sm font-medium text-slate-300">Телефон</label>
+                                <input type="tel" id="contactPhone" name="phone" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="088 123 4567">
                             </div>
+                        </div>
+                        <div>
+                            <label for="contactEmail" class="block text-sm font-medium text-slate-300">Имейл адрес <span class="text-slate-400">(пожелателно)</span></label>
+                            <input type="email" id="contactEmail" name="email" class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="vasia-email@example.com">
                         </div>
                         <div>
                             <label for="contactMessage" class="block text-sm font-medium text-slate-300">Коментар или запитване</label>
