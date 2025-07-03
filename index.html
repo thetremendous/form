@@ -82,6 +82,14 @@
             color: #cbd5e1; /* slate-300 */
         }
         .number-stepper button:hover { background-color: #475569; } /* slate-600 */
+        
+        #businessCardModal.hidden { display: none; }
+        #businessCardModal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        #businessCardModal .modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-slate-900">
@@ -91,8 +99,17 @@
             <div class="grid grid-cols-1 lg:grid-cols-2">
                 <!-- Left Column: Form -->
                 <div class="p-8 sm:p-10">
-                    <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">Оценете своя имот</h1>
-                    <p class="text-slate-300 mb-8">Получете мигновена, базирана на данни, оценка на вашия имот.</p>
+                    <div class="flex items-start justify-between mb-8">
+                        <div>
+                            <h1 class="text-3xl sm:text-4xl font-extrabold text-white">Оценете своя имот</h1>
+                            <p class="text-slate-300 mt-2">Получете мигновена, базирана на данни, оценка на вашия имот.</p>
+                        </div>
+                        <div class="text-center flex-shrink-0">
+                            <!-- TODO: Replace the background-image URL with your permanent image URL -->
+                            <button id="openBusinessCard" class="w-14 h-14 rounded-full bg-cover bg-center border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-800" style="background-image: url('https://placehold.co/100x100/334155/e2e8f0?text=MD')" aria-label="Open Business Card"></button>
+                            <p class="text-xs text-slate-400 mt-1">Контакти</p>
+                        </div>
+                    </div>
 
                     <div class="space-y-6">
                         <!-- Buyer/Seller Toggle -->
@@ -227,7 +244,6 @@
                             <label for="contactMessage" class="block text-sm font-medium text-slate-300">Коментар или запитване</label>
                             <textarea id="contactMessage" name="message" rows="4" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Бих искал/а повече информация относно..."></textarea>
                         </div>
-                        <!-- UPDATED: Added checkbox -->
                         <div class="flex items-center">
                             <input id="sell-checkbox" name="selling_in_3_to_6_months" type="checkbox" value="Yes" class="h-4 w-4 rounded border-slate-500 bg-slate-700 text-sky-500 focus:ring-sky-500 focus:ring-offset-slate-800">
                             <label for="sell-checkbox" class="ml-3 block text-sm text-slate-300">Бих искал/а да продам имота си в следващите 3-6 месеца</label>
@@ -252,6 +268,31 @@
     </div>
      <div id="errorNotification" class="fixed bottom-5 right-5 bg-red-500 text-white font-bold py-3 px-5 rounded-lg shadow-lg transition-transform duration-300 translate-x-[120%] z-50">
       Възникна грешка.
+    </div>
+
+    <!-- Business Card Modal HTML -->
+    <div id="businessCardModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center relative transform scale-95">
+            <button id="closeBusinessCard" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors" aria-label="Close Business Card">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="mb-4">
+                <!-- TODO: Replace the src URL with your permanent image URL -->
+                <img src="https://placehold.co/150x150/334155/e2e8f0?text=MD" alt="Снимка на агент" class="w-28 h-28 rounded-full mx-auto border-4 border-slate-700 object-cover">
+            </div>
+            <h3 class="text-2xl font-bold text-white">Мария Димитрова</h3>
+            <p class="text-sky-400 font-semibold mb-6">Агент недвижими имоти</p>
+            <div class="space-y-4 text-left">
+                <a href="tel:+359881234567" class="flex items-center gap-3 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-sky-400 transition-colors"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                    <span class="text-slate-300 group-hover:text-white transition-colors">+359 88 123 4567</span>
+                </a>
+                <a href="mailto:maria.dimitrova@realestate.bg" class="flex items-center gap-3 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-sky-400 transition-colors"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    <span class="text-slate-300 group-hover:text-white transition-colors">maria.dimitrova@realestate.bg</span>
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- Datepicker JS -->
@@ -393,16 +434,21 @@
                 return false;
             }
 
-            const basePricePerSqM = 1500;
+            let basePricePerSqM = 1800; 
             let typeMultiplier = 1.0;
-            let bedroomBonus = 0;
-            let garageBonus = 0;
-            let parkingSpotBonus = 0;
-            let ageFactor = 1.0;
-
-            if (propertyType === 'House') typeMultiplier = 1.2;
-            if (propertyType === 'Plot') typeMultiplier = 0.5;
-            if (propertyType === 'Other') {
+            
+            if (propertyType === 'Apartment' || propertyType === 'House') {
+                if (area >= 50 && area <= 75) {
+                    basePricePerSqM = 2700;
+                } else if (area > 90) {
+                    basePricePerSqM = 2300;
+                }
+                if (propertyType === 'House') {
+                    typeMultiplier = 1.2;
+                }
+            } else if (propertyType === 'Plot') {
+                typeMultiplier = 0.5;
+            } else if (propertyType === 'Other') {
                 switch(otherType) {
                     case 'ResidentialBuilding': typeMultiplier = 1.5; break;
                     case 'Office': typeMultiplier = 1.3; break;
@@ -410,6 +456,11 @@
                     case 'VacationProperty': typeMultiplier = 1.1; break;
                 }
             }
+
+            let bedroomBonus = 0;
+            let garageBonus = 0;
+            let parkingSpotBonus = 0;
+            let ageFactor = 1.0;
 
             if (propertyType === 'Apartment' || propertyType === 'House') {
                 bedroomBonus = (bedrooms || 0) * 10000;
@@ -539,6 +590,39 @@
         tooltipContainer.addEventListener('mouseleave', () => {
             tooltip.classList.add('hidden');
         });
+
+        // --- Business Card Modal Logic ---
+        const businessCardModal = document.getElementById('businessCardModal');
+        const openBusinessCardBtn = document.getElementById('openBusinessCard');
+        const closeBusinessCardBtn = document.getElementById('closeBusinessCard');
+        const modalContent = businessCardModal.querySelector('.modal-content');
+
+        function openModal() {
+            document.body.style.overflow = 'hidden';
+            businessCardModal.classList.remove('hidden');
+            setTimeout(() => {
+                businessCardModal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal() {
+            document.body.style.overflow = '';
+            businessCardModal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                businessCardModal.classList.add('hidden');
+            }, 300);
+        }
+
+        openBusinessCardBtn.addEventListener('click', openModal);
+        closeBusinessCardBtn.addEventListener('click', closeModal);
+        businessCardModal.addEventListener('click', (e) => {
+            if (e.target === businessCardModal) {
+                closeModal();
+            }
+        });
+
     </script>
 </body>
 </html>
