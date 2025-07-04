@@ -391,17 +391,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
-        // --- Year Picker Initialization ---
-        const yearpickerEl = document.getElementById('year');
-        let datepicker = new Datepicker(yearpickerEl, {
-            buttonClass: 'btn',
-            format: 'yyyy',
-            pickLevel: 2,
-            autohide: true,
-            maxDate: new Date().getFullYear().toString()
-        }); 
-
-        // --- Role Selection Logic ---
+        // --- Global Variable Declarations ---
         const sellerBtn = document.getElementById('sellerBtn');
         const buyerBtn = document.getElementById('buyerBtn');
         const userRoleInput = document.getElementById('userRole');
@@ -412,25 +402,88 @@
         const calculateBtn = document.getElementById('calculateBtn');
         const resultSection = document.getElementById('result');
         const budgetWrapper = document.getElementById('budgetWrapper');
+        const propertyTypeSelect = document.getElementById('propertyType');
+        const bedroomsWrapper = document.getElementById('bedroomsWrapper');
+        const parkingDetailsContainer = document.getElementById('parkingDetailsContainer');
+        const otherTypeWrapper = document.getElementById('otherTypeWrapper');
+        const contactForm = document.getElementById('contactForm');
+        const valuationEl = document.getElementById('valuation');
+        const valuationRangeEl = document.getElementById('valuation-range');
+        const errorMessageEl = document.getElementById('error-message');
+        const businessCardModal = document.getElementById('businessCardModal');
+        const openBusinessCardBtn = document.getElementById('openBusinessCard');
+        const closeBusinessCardBtn = document.getElementById('closeBusinessCard');
+        const screenshotModal = document.getElementById('screenshotModal');
+        const openScreenshotModalBtn = document.getElementById('openScreenshotModal');
+        const closeScreenshotModalBtn = document.getElementById('closeScreenshotModal');
+        const fullScreenshotImg = document.getElementById('full-screenshot-img');
+        const getNeighborhoodBtn = document.getElementById('getNeighborhoodBtn');
+        const geminiResultContainer = document.getElementById('geminiResultContainer');
+        const geminiLoader = document.getElementById('geminiLoader');
+        const geminiResultText = document.getElementById('geminiResultText');
+        const tooltipContainer = document.getElementById('tooltip-container');
+        const tooltip = document.getElementById('tooltip');
+        const contactAgentEmailBtn = document.getElementById('contactAgentEmail');
+        const contactNameInput = document.getElementById('contactName');
+
+        let marker;
+        let currentDrawer = null;
+
+        // --- Map Initialization ---
+        const map = L.map('map', {
+            center: [42.6977, 23.3219],
+            zoom: 13,
+            zoomControl: false,
+            preferCanvas: true 
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        
+        const drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+        
+        setTimeout(() => { map.invalidateSize(); }, 0);
+
+        
+        // --- Function Definitions ---
+        function resetAllForms() {
+            addressInput.value = '';
+            document.getElementById('area').value = '';
+            propertyTypeSelect.value = 'Apartment';
+            document.getElementById('bedrooms').value = '';
+            document.getElementById('garage').value = '0';
+            document.getElementById('parkingSpot').value = '0';
+            document.getElementById('year').value = '';
+            document.getElementById('budget').value = '';
+            
+            contactForm.reset();
+
+            document.getElementById('screenshotData').value = '';
+            document.getElementById('screenshot-preview-container').classList.add('hidden');
+
+            drawnItems.clearLayers();
+
+            resultSection.classList.add('hidden');
+            document.getElementById('gemini-features').classList.add('hidden');
+        }
 
         function setActiveRole(role) {
+            resetAllForms();
             if (role === 'Seller') {
                 sellerBtn.classList.add('active');
                 buyerBtn.classList.remove('active');
                 userRoleInput.value = 'Seller';
-            } else { // Buyer
+            } else { 
                 buyerBtn.classList.add('active');
                 sellerBtn.classList.remove('active');
                 userRoleInput.value = 'Buyer';
             }
             updateFormVisibility();
         }
-        
-        // --- Handle Property Type Change ---
-        const propertyTypeSelect = document.getElementById('propertyType');
-        const bedroomsWrapper = document.getElementById('bedroomsWrapper');
-        const parkingDetailsContainer = document.getElementById('parkingDetailsContainer');
-        const otherTypeWrapper = document.getElementById('otherTypeWrapper');
 
         function updateFormVisibility() {
             const role = userRoleInput.value;
@@ -478,54 +531,6 @@
             }
         }
         
-        setActiveRole('Seller');
-        updateFormVisibility();
-
-        sellerBtn.addEventListener('click', () => setActiveRole('Seller'));
-        buyerBtn.addEventListener('click', () => setActiveRole('Buyer'));
-        propertyTypeSelect.addEventListener('change', updateFormVisibility);
-
-
-        // --- Map Initialization ---
-        const map = L.map('map', {
-            center: [42.6977, 23.3219],
-            zoom: 13,
-            zoomControl: false,
-            preferCanvas: true 
-        });
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-        
-        setTimeout(() => { map.invalidateSize(); }, 0);
-
-
-        let marker;
-        const valuationEl = document.getElementById('valuation');
-        const valuationRangeEl = document.getElementById('valuation-range');
-        const errorMessageEl = document.getElementById('error-message');
-        
-        // --- Number Stepper Logic ---
-        document.querySelectorAll('.number-stepper').forEach(stepper => {
-            const input = stepper.querySelector('input');
-            stepper.addEventListener('click', (e) => {
-                if (e.target.matches('button')) {
-                    const action = e.target.dataset.action;
-                    let currentValue = parseInt(input.value, 10);
-                    if (action === 'increment') {
-                        currentValue++;
-                    } else if (action === 'decrement' && currentValue > 0) {
-                        currentValue--;
-                    }
-                    input.value = currentValue;
-                }
-            });
-        });
-
-        // --- Calculation Logic ---
         function calculateValuation() {
             resultDiv.classList.add('hidden');
             errorMessageEl.classList.add('hidden');
@@ -622,10 +627,84 @@
             document.getElementById('gemini-features').classList.remove('hidden');
             return true;
         }
-        
+
+        function openModal(modalEl) {
+            document.body.style.overflow = 'hidden';
+            modalEl.classList.remove('hidden');
+            setTimeout(() => {
+                modalEl.classList.remove('opacity-0');
+                modalEl.querySelector('.modal-content').classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal(modalEl) {
+            document.body.style.overflow = '';
+            modalEl.classList.add('opacity-0');
+            modalEl.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                modalEl.classList.add('hidden');
+            }, 300);
+        }
+
+        async function callGemini(prompt) {
+            geminiResultContainer.classList.remove('hidden');
+            geminiLoader.classList.remove('hidden');
+            geminiResultText.classList.add('hidden');
+            
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Left empty as per instructions
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                let text = "Неуспешно генериране на отговор.";
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    text = result.candidates[0].content.parts[0].text;
+                }
+                geminiResultText.innerHTML = text;
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                geminiResultText.innerHTML = "Възникна грешка при връзката с услугата.";
+            } finally {
+                geminiLoader.classList.add('hidden');
+                geminiResultText.classList.remove('hidden');
+            }
+        }
+
+        // --- Initial Setup and Event Listeners ---
+        setActiveRole('Seller');
+        updateFormVisibility();
+
+        sellerBtn.addEventListener('click', () => setActiveRole('Seller'));
+        buyerBtn.addEventListener('click', () => setActiveRole('Buyer'));
+        propertyTypeSelect.addEventListener('change', updateFormVisibility);
         calculateBtn.addEventListener('click', calculateValuation);
 
-        // --- Reverse Geocoding on Map Click ---
+        document.querySelectorAll('.number-stepper').forEach(stepper => {
+            const input = stepper.querySelector('input');
+            stepper.addEventListener('click', (e) => {
+                if (e.target.matches('button')) {
+                    const action = e.target.dataset.action;
+                    let currentValue = parseInt(input.value, 10);
+                    if (action === 'increment') {
+                        currentValue++;
+                    } else if (action === 'decrement' && currentValue > 0) {
+                        currentValue--;
+                    }
+                    input.value = currentValue;
+                }
+            });
+        });
+
         map.on('click', async function(e) {
             const { lat, lng } = e.latlng;
             if (marker) {
@@ -655,7 +734,6 @@
             }
         });
 
-        // --- Geocoding on Address Input ---
         addressInput.addEventListener('change', async () => {
             const address = addressInput.value;
             if (address.length < 3) return;
@@ -674,49 +752,12 @@
             }
         });
         
-        // --- Contact Form Logic with Formspree ---
-        const contactForm = document.getElementById('contactForm');
         contactForm.addEventListener('submit', async function(event) {
             event.preventDefault();
 
             const form = event.target;
             const formData = new FormData(form);
             const role = userRoleInput.value;
-
-            // Set hidden fields for Formspree
-            formData.set('role', role === 'Seller' ? 'Продавач' : 'Купувач');
-            
-            if (role === 'Seller') {
-                formData.set('property_address', document.getElementById('address').value || 'Няма въведен');
-                formData.set('estimated_valuation', document.getElementById('valuation').textContent || 'Няма изчислена');
-            } else { // Buyer
-                const propertyType = document.getElementById('propertyType').options[document.getElementById('propertyType').selectedIndex].text;
-                const area = document.getElementById('area').value;
-                const bedrooms = document.getElementById('bedrooms').value;
-                const garage = document.getElementById('garage').value;
-                const parkingSpot = document.getElementById('parkingSpot').value;
-                const buildingType = document.getElementById('buildingTypeSelect').options[document.getElementById('buildingTypeSelect').selectedIndex].text;
-                const budget = document.getElementById('budget').value;
-                
-                let criteria = `Критерии за търсене на купувач:\n--------------------------------\n`;
-                criteria += `Район: ${addressInput.value}\n`;
-                criteria += `Тип имот: ${propertyType}\n`;
-                criteria += `Квадратура: ${area} кв.м.\n`;
-                if (propertyType === 'Апартамент' || propertyType === 'Къща') {
-                    criteria += `Спални: ${bedrooms}\nГараж: ${garage}\nПаркомясто: ${parkingSpot}\nТип сграда: ${buildingType}\n`;
-                }
-                criteria += `Бюджет: €${budget}`;
-                
-                const buyerCriteriaBlob = new Blob([criteria], { type: 'text/plain' });
-                formData.append("buyer_criteria.txt", buyerCriteriaBlob, "buyer-criteria.txt");
-            }
-
-            const screenshotData = document.getElementById('screenshotData').value;
-             if (screenshotData) {
-                const fetchRes = await fetch(screenshotData);
-                const blob = await fetchRes.blob();
-                formData.append("screenshot.png", blob, "screenshot.png");
-            }
             
             const notification = document.getElementById('notification');
             const errorNotification = document.getElementById('errorNotification');
@@ -748,39 +789,12 @@
             }
         });
 
-        // --- Tooltip Logic ---
-        const tooltipContainer = document.getElementById('tooltip-container');
-        const tooltip = document.getElementById('tooltip');
-
         tooltipContainer.addEventListener('mouseenter', () => {
             tooltip.classList.remove('hidden');
         });
         tooltipContainer.addEventListener('mouseleave', () => {
             tooltip.classList.add('hidden');
         });
-
-        // --- Business Card Modal Logic ---
-        const businessCardModal = document.getElementById('businessCardModal');
-        const openBusinessCardBtn = document.getElementById('openBusinessCard');
-        const closeBusinessCardBtn = document.getElementById('closeBusinessCard');
-
-        function openModal(modalEl) {
-            document.body.style.overflow = 'hidden';
-            modalEl.classList.remove('hidden');
-            setTimeout(() => {
-                modalEl.classList.remove('opacity-0');
-                modalEl.querySelector('.modal-content').classList.remove('scale-95');
-            }, 10);
-        }
-
-        function closeModal(modalEl) {
-            document.body.style.overflow = '';
-            modalEl.classList.add('opacity-0');
-            modalEl.querySelector('.modal-content').classList.add('scale-95');
-            setTimeout(() => {
-                modalEl.classList.add('hidden');
-            }, 300);
-        }
 
         openBusinessCardBtn.addEventListener('click', () => openModal(businessCardModal));
         closeBusinessCardBtn.addEventListener('click', () => closeModal(businessCardModal));
@@ -790,9 +804,6 @@
             }
         });
         
-        const contactAgentEmailBtn = document.getElementById('contactAgentEmail');
-        const contactNameInput = document.getElementById('contactName');
-
         contactAgentEmailBtn.addEventListener('click', (e) => {
             e.preventDefault();
             closeModal(businessCardModal);
@@ -803,11 +814,7 @@
             }, 300);
         });
 
-        // --- Screenshot and Drawing Logic ---
-        const drawnItems = new L.FeatureGroup();
-        map.addLayer(drawnItems);
-        let currentDrawer = null;
-
+        // Screenshot and Drawing Logic
         document.getElementById('drawCircleBtn').addEventListener('click', () => {
             if (currentDrawer) currentDrawer.disable();
             currentDrawer = new L.Draw.Circle(map, { shapeOptions: { color: '#38bdf8' } });
@@ -851,12 +858,6 @@
              document.getElementById('screenshot-preview-container').classList.add('hidden');
         });
 
-        // Screenshot Modal Logic
-        const screenshotModal = document.getElementById('screenshotModal');
-        const openScreenshotModalBtn = document.getElementById('openScreenshotModal');
-        const closeScreenshotModalBtn = document.getElementById('closeScreenshotModal');
-        const fullScreenshotImg = document.getElementById('full-screenshot-img');
-
         openScreenshotModalBtn.addEventListener('click', () => {
             const dataUrl = document.getElementById('screenshotData').value;
             if(dataUrl){
@@ -871,46 +872,6 @@
                 closeModal(screenshotModal);
             }
         });
-
-        // --- Gemini API Logic ---
-        const getNeighborhoodBtn = document.getElementById('getNeighborhoodBtn');
-        const geminiResultContainer = document.getElementById('geminiResultContainer');
-        const geminiLoader = document.getElementById('geminiLoader');
-        const geminiResultText = document.getElementById('geminiResultText');
-
-        async function callGemini(prompt) {
-            geminiResultContainer.classList.remove('hidden');
-            geminiLoader.classList.remove('hidden');
-            geminiResultText.classList.add('hidden');
-            
-            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-            const payload = { contents: chatHistory };
-            const apiKey = ""; // Left empty as per instructions
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                
-                let text = "Неуспешно генериране на отговор.";
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    text = result.candidates[0].content.parts[0].text;
-                }
-                geminiResultText.innerHTML = text;
-            } catch (error) {
-                console.error("Error calling Gemini API:", error);
-                geminiResultText.innerHTML = "Възникна грешка при връзката с услугата.";
-            } finally {
-                geminiLoader.classList.add('hidden');
-                geminiResultText.classList.remove('hidden');
-            }
-        }
 
         getNeighborhoodBtn.addEventListener('click', () => {
             const address = document.getElementById('address').value;
