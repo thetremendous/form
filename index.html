@@ -333,10 +333,7 @@
                             <input id="sell-checkbox" name="selling_in_3_to_6_months" type="checkbox" value="Yes" class="h-4 w-4 rounded border-slate-500 bg-slate-700 text-sky-500 focus:ring-sky-500 focus:ring-offset-slate-800">
                             <label for="sell-checkbox" class="ml-3 block text-sm text-slate-300">Бих искал/а да продам имота си в следващите 3-6 месеца</label>
                         </div>
-                        <!-- Hidden fields for extra data -->
-                        <input type="hidden" id="formUserRole" name="role">
-                        <input type="hidden" id="formAddress" name="property_address">
-                        <input type="hidden" id="formValuation" name="estimated_valuation">
+                        <!-- Hidden textarea for screenshot data -->
                         <textarea id="screenshotData" name="screenshot" class="hidden"></textarea>
                         <div>
                             <button type="submit" id="sendFeedbackBtn" class="w-full btn-secondary font-bold py-3 px-6 rounded-lg">
@@ -686,8 +683,9 @@
             const formData = new FormData(form);
             const role = userRoleInput.value;
 
-            document.getElementById('formUserRole').value = role === 'Seller' ? 'Продавач' : 'Купувач';
-
+            // Set hidden fields for Formspree
+            formData.set('role', role === 'Seller' ? 'Продавач' : 'Купувач');
+            
             if (role === 'Seller') {
                 formData.set('property_address', document.getElementById('address').value || 'Няма въведен');
                 formData.set('estimated_valuation', document.getElementById('valuation').textContent || 'Няма изчислена');
@@ -710,7 +708,14 @@
                 criteria += `Бюджет: €${budget}`;
                 
                 const buyerCriteriaBlob = new Blob([criteria], { type: 'text/plain' });
-                formData.append("buyer_criteria_attachment", buyerCriteriaBlob, "buyer-criteria.txt");
+                formData.append("buyer_criteria.txt", buyerCriteriaBlob, "buyer-criteria.txt");
+            }
+
+            const screenshotData = document.getElementById('screenshotData').value;
+             if (screenshotData) {
+                const fetchRes = await fetch(screenshotData);
+                const blob = await fetchRes.blob();
+                formData.append("screenshot.png", blob, "screenshot.png");
             }
             
             const notification = document.getElementById('notification');
@@ -921,4 +926,3 @@
     </script>
 </body>
 </html>
-
