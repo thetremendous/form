@@ -249,6 +249,10 @@
                                     </div>
                                 </div>
                             </div>
+                            <div id="budgetWrapper" class="hidden">
+                                <label for="budget" class="block text-sm font-medium text-slate-300 mb-1">Бюджет (€)</label>
+                                <input type="number" id="budget" name="budget" class="w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="напр., 200000">
+                            </div>
                         </div>
                         <button id="calculateBtn" class="w-full btn-primary text-white font-bold py-3 px-6 rounded-lg">
                             Изчисли оценка
@@ -333,7 +337,6 @@
                         <input type="hidden" id="formUserRole" name="role">
                         <input type="hidden" id="formAddress" name="property_address">
                         <input type="hidden" id="formValuation" name="estimated_valuation">
-                        <textarea id="buyerCriteria" name="buyer_criteria" class="hidden"></textarea>
                         <textarea id="screenshotData" name="screenshot" class="hidden"></textarea>
                         <div>
                             <button type="submit" id="sendFeedbackBtn" class="w-full btn-secondary font-bold py-3 px-6 rounded-lg">
@@ -411,6 +414,7 @@
         const buildingTypeWrapper = document.getElementById('buildingTypeWrapper');
         const calculateBtn = document.getElementById('calculateBtn');
         const resultSection = document.getElementById('result');
+        const budgetWrapper = document.getElementById('budgetWrapper');
 
         function setActiveRole(role) {
             if (role === 'Seller') {
@@ -442,11 +446,13 @@
                 addressInput.placeholder = 'напр., бул. Витоша 1, София';
                 show(calculateBtn);
                 show(resultSection);
+                hide(budgetWrapper);
             } else {
                 addressLabel.textContent = 'Район';
                 addressInput.placeholder = 'напр., Лозенец, София';
                 hide(calculateBtn);
                 hide(resultSection);
+                show(budgetWrapper);
             }
 
             hide(bedroomsWrapper);
@@ -683,9 +689,8 @@
             document.getElementById('formUserRole').value = role === 'Seller' ? 'Продавач' : 'Купувач';
 
             if (role === 'Seller') {
-                document.getElementById('formAddress').value = document.getElementById('address').value || 'Няма въведен';
-                document.getElementById('formValuation').value = document.getElementById('valuation').textContent || 'Няма изчислена';
-                document.getElementById('buyerCriteria').value = ''; // Clear buyer criteria
+                formData.set('property_address', document.getElementById('address').value || 'Няма въведен');
+                formData.set('estimated_valuation', document.getElementById('valuation').textContent || 'Няма изчислена');
             } else { // Buyer
                 const propertyType = document.getElementById('propertyType').options[document.getElementById('propertyType').selectedIndex].text;
                 const area = document.getElementById('area').value;
@@ -693,14 +698,19 @@
                 const garage = document.getElementById('garage').value;
                 const parkingSpot = document.getElementById('parkingSpot').value;
                 const buildingType = document.getElementById('buildingTypeSelect').options[document.getElementById('buildingTypeSelect').selectedIndex].text;
+                const budget = document.getElementById('budget').value;
                 
-                let criteria = `Тип: ${propertyType}\nКвадратура: ${area} кв.м.\nРайон: ${addressInput.value}`;
+                let criteria = `Критерии за търсене на купувач:\n--------------------------------\n`;
+                criteria += `Район: ${addressInput.value}\n`;
+                criteria += `Тип имот: ${propertyType}\n`;
+                criteria += `Квадратура: ${area} кв.м.\n`;
                 if (propertyType === 'Апартамент' || propertyType === 'Къща') {
-                    criteria += `\nСпални: ${bedrooms}\nГараж: ${garage}\nПаркомясто: ${parkingSpot}\nТип сграда: ${buildingType}`;
+                    criteria += `Спални: ${bedrooms}\nГараж: ${garage}\nПаркомясто: ${parkingSpot}\nТип сграда: ${buildingType}\n`;
                 }
-                document.getElementById('buyerCriteria').value = criteria;
-                document.getElementById('formAddress').value = '';
-                document.getElementById('formValuation').value = '';
+                criteria += `Бюджет: €${budget}`;
+                
+                const buyerCriteriaBlob = new Blob([criteria], { type: 'text/plain' });
+                formData.append("buyer_criteria_attachment", buyerCriteriaBlob, "buyer-criteria.txt");
             }
             
             const notification = document.getElementById('notification');
@@ -712,7 +722,7 @@
             try {
                 const response = await fetch(form.action, {
                     method: form.method,
-                    body: new FormData(form),
+                    body: formData,
                     headers: { 'Accept': 'application/json' }
                 });
 
