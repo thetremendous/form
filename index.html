@@ -10,6 +10,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- Datepicker CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker.min.css">
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -83,13 +85,52 @@
         }
         .number-stepper button:hover { background-color: #475569; } /* slate-600 */
         
-        #businessCardModal.hidden { display: none; }
-        #businessCardModal {
+        #businessCardModal.hidden, #screenshotModal.hidden { display: none; }
+        #businessCardModal, #screenshotModal {
             transition: opacity 0.3s ease-in-out;
             z-index: 1000; 
         }
-        #businessCardModal .modal-content {
+        #businessCardModal .modal-content, #screenshotModal .modal-content {
             transition: transform 0.3s ease-in-out;
+        }
+        .leaflet-draw-toolbar a {
+            background-color: #1e293b !important;
+            border-bottom: 1px solid #334155 !important;
+            color: #e2e8f0 !important;
+        }
+        .leaflet-draw-toolbar a:hover {
+            background-color: #334155 !important;
+        }
+        .loader {
+            border: 4px solid #334155;
+            border-top: 4px solid #38bdf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #geminiResultText ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        #geminiResultText li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        #geminiResultText li::before {
+            content: '•';
+            color: #38bdf8;
+            font-weight: bold;
+            display: inline-block; 
+            width: 1em;
+            margin-left: -1em;
+            position: absolute;
+            left: 0;
         }
     </style>
 </head>
@@ -106,9 +147,8 @@
                             <p class="text-slate-300 mt-2">Получете мигновена, базирана на данни, оценка на вашия имот.</p>
                         </div>
                         <div class="text-center flex-shrink-0">
-                            <!-- UPDATED: Image URL -->
                             <button id="openBusinessCard" class="w-14 h-14 rounded-full bg-cover bg-center border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-800" style="background-image: url('https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg')" aria-label="Open Business Card"></button>
-                            <p class="text-xs text-slate-400 mt-1">Визитка</p>
+                            <p class="text-xs text-slate-400 mt-1">Контакти</p>
                         </div>
                     </div>
 
@@ -125,10 +165,10 @@
 
                         <div>
                             <div class="flex items-center gap-2 mb-1">
-                                <label for="address" class="block text-sm font-medium text-slate-300">Адрес на имота</label>
+                                <label for="address" id="addressLabel" class="block text-sm font-medium text-slate-300">Адрес на имота</label>
                                 <div class="relative" id="tooltip-container">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 cursor-pointer hover:text-sky-400 transition-colors"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                    <div id="tooltip" class="absolute bottom-full mb-2 w-max max-w-xs p-2 text-sm bg-slate-600 text-white rounded-md shadow-lg hidden z-10 -translate-x-1/2 left-1/2">
+                                    <div id="tooltip" class="absolute bottom-full mb-2 w-max max-w-xs p-2 text-sm bg-slate-600 text-white rounded-md shadow-lg hidden z-10 left-0">
                                         Можете също да кликнете върху картата.
                                     </div>
                                 </div>
@@ -196,6 +236,19 @@
                                 <label for="year" class="block text-sm font-medium text-slate-300 mb-1">Година на строеж</label>
                                 <input type="text" id="year" name="year" class="w-full form-input px-4 py-2.5 rounded-lg cursor-pointer placeholder:text-slate-400" placeholder="Изберете година">
                             </div>
+                            <div id="buildingTypeWrapper" class="hidden">
+                                <label for="buildingTypeSelect" class="block text-sm font-medium text-slate-300 mb-1">Тип на сградата</label>
+                                <div class="relative">
+                                    <select id="buildingTypeSelect" name="buildingTypeSelect" class="w-full form-input px-4 py-2.5 rounded-lg appearance-none">
+                                        <option value="brick">Тухла</option>
+                                        <option value="epk">ЕПК</option>
+                                        <option value="panel">Панел</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <button id="calculateBtn" class="w-full btn-primary text-white font-bold py-3 px-6 rounded-lg">
                             Изчисли оценка
@@ -206,6 +259,13 @@
                 <!-- Right Column: Map and Result -->
                 <div class="bg-slate-900/50 p-4 flex flex-col gap-4">
                     <div id="map" class="flex-grow"></div>
+                    <div class="flex justify-center gap-4">
+                        <button id="drawCircleBtn" class="btn-secondary text-sm py-2 px-4 rounded-lg">Рисувай кръг</button>
+                        <button id="clearDrawingsBtn" class="bg-red-500/20 text-red-400 text-sm py-2 px-4 rounded-lg hover:bg-red-500/30">Изчисти</button>
+                    </div>
+                    <div class="flex justify-center">
+                         <button id="screenshotBtn" class="btn-secondary text-sm py-2 px-4 rounded-lg">Направи екранна снимка</button>
+                    </div>
                     <div id="result" class="hidden p-6 bg-slate-800 rounded-xl text-center border border-slate-700">
                          <p class="text-slate-300 mb-2">Очаквана пазарна стойност:</p>
                         <p id="valuation" class="text-5xl font-extrabold text-sky-400"></p>
@@ -214,6 +274,16 @@
                             <p class="text-xs text-slate-500 italic">
                                 <span class="font-bold text-amber-500">!</span> Внимание: Посочените цени са индикативни и подлежат на по-задълбочено проучване. Те не представляват окончателна оферта.
                             </p>
+                        </div>
+                        <!-- Gemini Features Section -->
+                        <div id="gemini-features" class="hidden mt-4 pt-4 border-t border-slate-700 space-y-4">
+                            <button id="getNeighborhoodBtn" class="w-full btn-secondary text-sm py-2 px-4 rounded-lg">✨ Анализ на квартала</button>
+                            <div id="geminiResultContainer" class="hidden p-4 bg-slate-700/50 rounded-lg text-left">
+                                <div id="geminiLoader" class="flex justify-center items-center">
+                                    <div class="loader"></div>
+                                </div>
+                                <div id="geminiResultText" class="text-slate-300 text-sm whitespace-pre-wrap"></div>
+                            </div>
                         </div>
                     </div>
                      <div id="error-message" class="hidden p-4 bg-red-500/20 rounded-lg text-center text-red-400 font-medium border border-red-500/30">
@@ -227,6 +297,16 @@
                     <h2 class="text-2xl font-bold text-white mb-4 text-center">Имате нужда от консултация?</h2>
                     <p class="text-slate-300 mb-6 text-center">Попълнете формата по-долу и наш експерт ще се свърже с Вас за допълнителна информация и съдействие.</p>
                     <form id="contactForm" action="https://formspree.io/f/mnnvwyqr" method="POST" class="mx-auto space-y-4">
+                        <div id="screenshot-preview-container" class="hidden">
+                            <p class="text-sm font-medium text-slate-300 mb-2">Прикачен файл:</p>
+                            <div class="flex items-center justify-between bg-slate-700 p-2 rounded-lg">
+                                <div id="openScreenshotModal" class="flex items-center gap-3 cursor-pointer group">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-sky-400 transition-colors"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    <span class="text-sm text-slate-300 group-hover:text-sky-400 transition-colors">map-screenshot.png</span>
+                                </div>
+                                <button type="button" id="remove-screenshot" class="text-xl text-red-400 hover:text-red-300 leading-none">&times;</button>
+                            </div>
+                        </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="contactName" class="block text-sm font-medium text-slate-300">Вашето име</label>
@@ -253,6 +333,8 @@
                         <input type="hidden" id="formUserRole" name="role">
                         <input type="hidden" id="formAddress" name="property_address">
                         <input type="hidden" id="formValuation" name="estimated_valuation">
+                        <textarea id="buyerCriteria" name="buyer_criteria" class="hidden"></textarea>
+                        <textarea id="screenshotData" name="screenshot" class="hidden"></textarea>
                         <div>
                             <button type="submit" id="sendFeedbackBtn" class="w-full btn-secondary font-bold py-3 px-6 rounded-lg">
                                 Изпрати запитване
@@ -278,11 +360,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
             <div class="mb-4">
-                <!-- UPDATED: Image URL -->
                 <img src="https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg" alt="Снимка на агент" class="w-28 h-28 rounded-full mx-auto border-4 border-slate-700 object-cover">
             </div>
             <h3 class="text-2xl font-bold text-white">Цветелина Иванова</h3>
-            <p class="text-sky-400 font-semibold mb-6">Специалист недвижими имоти - ново строителство</p>
+            <p class="text-sky-400 font-semibold mb-6">Специалист недвижими имоти - ново стройтелство</p>
             <div class="space-y-4 text-left">
                 <a href="tel:+359894799475" class="flex items-center gap-3 group">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-sky-400 transition-colors"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
@@ -295,9 +376,20 @@
             </div>
         </div>
     </div>
+    
+    <!-- Screenshot Modal -->
+    <div id="screenshotModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="modal-content max-w-3xl w-full relative">
+             <button id="closeScreenshotModal" class="absolute -top-4 -right-4 bg-red-500 text-white rounded-full h-8 w-8 flex items-center justify-center text-2xl" aria-label="Close Screenshot Preview">&times;</button>
+            <img id="full-screenshot-img" class="w-full h-auto max-h-[80vh] object-contain rounded-lg">
+        </div>
+    </div>
 
     <!-- Datepicker JS -->
     <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
+    <!-- Leaflet Draw and html2canvas JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         // --- Year Picker Initialization ---
         const yearpickerEl = document.getElementById('year');
@@ -313,6 +405,12 @@
         const sellerBtn = document.getElementById('sellerBtn');
         const buyerBtn = document.getElementById('buyerBtn');
         const userRoleInput = document.getElementById('userRole');
+        const addressLabel = document.getElementById('addressLabel');
+        const addressInput = document.getElementById('address');
+        const yearWrapper = document.getElementById('yearWrapper');
+        const buildingTypeWrapper = document.getElementById('buildingTypeWrapper');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resultSection = document.getElementById('result');
 
         function setActiveRole(role) {
             if (role === 'Seller') {
@@ -324,17 +422,73 @@
                 sellerBtn.classList.remove('active');
                 userRoleInput.value = 'Buyer';
             }
+            updateFormVisibility();
         }
+        
+        // --- Handle Property Type Change ---
+        const propertyTypeSelect = document.getElementById('propertyType');
+        const bedroomsWrapper = document.getElementById('bedroomsWrapper');
+        const parkingDetailsContainer = document.getElementById('parkingDetailsContainer');
+        const otherTypeWrapper = document.getElementById('otherTypeWrapper');
+
+        function updateFormVisibility() {
+            const role = userRoleInput.value;
+            const type = propertyTypeSelect.value;
+            const show = (el) => el.classList.remove('hidden');
+            const hide = (el) => el.classList.add('hidden');
+
+            if (role === 'Seller') {
+                addressLabel.textContent = 'Адрес на имота';
+                addressInput.placeholder = 'напр., бул. Витоша 1, София';
+                show(calculateBtn);
+                show(resultSection);
+            } else {
+                addressLabel.textContent = 'Район';
+                addressInput.placeholder = 'напр., Лозенец, София';
+                hide(calculateBtn);
+                hide(resultSection);
+            }
+
+            hide(bedroomsWrapper);
+            hide(parkingDetailsContainer);
+            hide(yearWrapper);
+            hide(otherTypeWrapper);
+            hide(buildingTypeWrapper);
+
+            if (type === 'Apartment' || type === 'House') {
+                show(bedroomsWrapper);
+                show(parkingDetailsContainer);
+                if (role === 'Seller') {
+                    show(yearWrapper);
+                } else {
+                    show(buildingTypeWrapper);
+                }
+            } else if (type === 'Plot') {
+                // All are hidden
+            } else if (type === 'Other') {
+                show(otherTypeWrapper);
+                if (role === 'Seller') {
+                    show(yearWrapper);
+                } else {
+                    show(buildingTypeWrapper);
+                }
+            }
+        }
+        
         setActiveRole('Seller');
+        updateFormVisibility();
+
         sellerBtn.addEventListener('click', () => setActiveRole('Seller'));
         buyerBtn.addEventListener('click', () => setActiveRole('Buyer'));
+        propertyTypeSelect.addEventListener('change', updateFormVisibility);
 
 
         // --- Map Initialization ---
         const map = L.map('map', {
             center: [42.6977, 23.3219],
             zoom: 13,
-            zoomControl: false 
+            zoomControl: false,
+            preferCanvas: true 
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -347,44 +501,10 @@
 
 
         let marker;
-        const addressInput = document.getElementById('address');
-        const calculateBtn = document.getElementById('calculateBtn');
-        const resultDiv = document.getElementById('result');
         const valuationEl = document.getElementById('valuation');
         const valuationRangeEl = document.getElementById('valuation-range');
         const errorMessageEl = document.getElementById('error-message');
         
-        // --- Handle Property Type Change ---
-        const propertyTypeSelect = document.getElementById('propertyType');
-        const bedroomsWrapper = document.getElementById('bedroomsWrapper');
-        const parkingDetailsContainer = document.getElementById('parkingDetailsContainer');
-        const yearWrapper = document.getElementById('yearWrapper');
-        const otherTypeWrapper = document.getElementById('otherTypeWrapper');
-
-        function toggleFields() {
-            const type = propertyTypeSelect.value;
-            const show = (el) => el.classList.remove('hidden');
-            const hide = (el) => el.classList.add('hidden');
-
-            hide(bedroomsWrapper);
-            hide(parkingDetailsContainer);
-            hide(yearWrapper);
-            hide(otherTypeWrapper);
-
-            if (type === 'Apartment' || type === 'House') {
-                show(bedroomsWrapper);
-                show(parkingDetailsContainer);
-                show(yearWrapper);
-            } else if (type === 'Plot') {
-                // All are hidden
-            } else if (type === 'Other') {
-                show(otherTypeWrapper);
-                show(yearWrapper);
-            }
-        }
-        propertyTypeSelect.addEventListener('change', toggleFields);
-        toggleFields();
-
         // --- Number Stepper Logic ---
         document.querySelectorAll('.number-stepper').forEach(stepper => {
             const input = stepper.querySelector('input');
@@ -416,14 +536,18 @@
             const otherType = document.getElementById('otherTypeSelect').value;
             const year = parseInt(document.getElementById('year').value);
             const addressVal = document.getElementById('address').value;
+            const role = userRoleInput.value;
+            const buildingType = document.getElementById('buildingTypeSelect').value;
 
             let errorParts = [];
             if (isNaN(area) || area <= 0) errorParts.push("валидна квадратура");
             
             if (propertyType === 'Apartment' || propertyType === 'House') {
                 if (isNaN(bedrooms) || bedrooms < 0) errorParts.push("валиден брой спални");
-                if (isNaN(year) || year < 1800 || year > new Date().getFullYear()) errorParts.push("валидна година на строеж");
-            } else if (propertyType === 'Other') {
+                if (role === 'Seller' && (isNaN(year) || year < 1800 || year > new Date().getFullYear())) {
+                    errorParts.push("валидна година на строеж");
+                }
+            } else if (propertyType === 'Other' && role === 'Seller') {
                  if (isNaN(year) || year < 1800 || year > new Date().getFullYear()) errorParts.push("валидна година на строеж");
             }
 
@@ -461,7 +585,7 @@
             let bedroomBonus = 0;
             let garageBonus = 0;
             let parkingSpotBonus = 0;
-            let ageFactor = 1.0;
+            let constructionFactor = 1.0;
 
             if (propertyType === 'Apartment' || propertyType === 'House') {
                 bedroomBonus = (bedrooms || 0) * 10000;
@@ -470,12 +594,20 @@
             } 
             
             if (propertyType !== 'Plot') {
-                 const currentYear = new Date().getFullYear();
-                 const age = currentYear - year;
-                 if (age > 50) { ageFactor = 0.8; } else if (age < 5) { ageFactor = 1.1; }
+                if (role === 'Seller') {
+                    const currentYear = new Date().getFullYear();
+                    const age = currentYear - year;
+                    if (age > 50) { constructionFactor = 0.8; } else if (age < 5) { constructionFactor = 1.1; }
+                } else { // Buyer
+                    switch(buildingType) {
+                        case 'brick': constructionFactor = 1.1; break;
+                        case 'epk': constructionFactor = 1.0; break;
+                        case 'panel': constructionFactor = 0.9; break;
+                    }
+                }
             }
             
-            const estimatedValue = (area * basePricePerSqM * typeMultiplier * ageFactor) + bedroomBonus + garageBonus + parkingSpotBonus;
+            const estimatedValue = (area * basePricePerSqM * typeMultiplier * constructionFactor) + bedroomBonus + garageBonus + parkingSpotBonus;
             const randomFactor = 1 + (Math.random() - 0.5) * 0.1;
             const finalValue = Math.round(estimatedValue * randomFactor);
             const lowerBound = Math.round(finalValue * 0.95);
@@ -484,10 +616,10 @@
             valuationEl.textContent = `€${finalValue.toLocaleString('de-DE')}`;
             valuationRangeEl.textContent = `(В диапазон: €${lowerBound.toLocaleString('de-DE')} - €${upperBound.toLocaleString('de-DE')})`;
             resultDiv.classList.remove('hidden');
+            document.getElementById('gemini-features').classList.remove('hidden');
             return true;
         }
         
-        // --- Button Event Listener ---
         calculateBtn.addEventListener('click', calculateValuation);
 
         // --- Reverse Geocoding on Map Click ---
@@ -515,7 +647,7 @@
             }
 
             const area = parseFloat(document.getElementById('area').value);
-            if (!isNaN(area) && area > 0) {
+            if (userRoleInput.value === 'Seller' && !isNaN(area) && area > 0) {
                 calculateValuation();
             }
         });
@@ -546,10 +678,30 @@
 
             const form = event.target;
             const formData = new FormData(form);
+            const role = userRoleInput.value;
 
-            document.getElementById('formUserRole').value = document.getElementById('userRole').value === 'Seller' ? 'Продавач' : 'Купувач';
-            document.getElementById('formAddress').value = document.getElementById('address').value || 'Няма въведен';
-            document.getElementById('formValuation').value = document.getElementById('valuation').textContent || 'Няма изчислена';
+            document.getElementById('formUserRole').value = role === 'Seller' ? 'Продавач' : 'Купувач';
+
+            if (role === 'Seller') {
+                document.getElementById('formAddress').value = document.getElementById('address').value || 'Няма въведен';
+                document.getElementById('formValuation').value = document.getElementById('valuation').textContent || 'Няма изчислена';
+                document.getElementById('buyerCriteria').value = ''; // Clear buyer criteria
+            } else { // Buyer
+                const propertyType = document.getElementById('propertyType').options[document.getElementById('propertyType').selectedIndex].text;
+                const area = document.getElementById('area').value;
+                const bedrooms = document.getElementById('bedrooms').value;
+                const garage = document.getElementById('garage').value;
+                const parkingSpot = document.getElementById('parkingSpot').value;
+                const buildingType = document.getElementById('buildingTypeSelect').options[document.getElementById('buildingTypeSelect').selectedIndex].text;
+                
+                let criteria = `Тип: ${propertyType}\nКвадратура: ${area} кв.м.\nРайон: ${addressInput.value}`;
+                if (propertyType === 'Апартамент' || propertyType === 'Къща') {
+                    criteria += `\nСпални: ${bedrooms}\nГараж: ${garage}\nПаркомясто: ${parkingSpot}\nТип сграда: ${buildingType}`;
+                }
+                document.getElementById('buyerCriteria').value = criteria;
+                document.getElementById('formAddress').value = '';
+                document.getElementById('formValuation').value = '';
+            }
             
             const notification = document.getElementById('notification');
             const errorNotification = document.getElementById('errorNotification');
@@ -596,31 +748,30 @@
         const businessCardModal = document.getElementById('businessCardModal');
         const openBusinessCardBtn = document.getElementById('openBusinessCard');
         const closeBusinessCardBtn = document.getElementById('closeBusinessCard');
-        const modalContent = businessCardModal.querySelector('.modal-content');
 
-        function openModal() {
+        function openModal(modalEl) {
             document.body.style.overflow = 'hidden';
-            businessCardModal.classList.remove('hidden');
+            modalEl.classList.remove('hidden');
             setTimeout(() => {
-                businessCardModal.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-95');
+                modalEl.classList.remove('opacity-0');
+                modalEl.querySelector('.modal-content').classList.remove('scale-95');
             }, 10);
         }
 
-        function closeModal() {
+        function closeModal(modalEl) {
             document.body.style.overflow = '';
-            businessCardModal.classList.add('opacity-0');
-            modalContent.classList.add('scale-95');
+            modalEl.classList.add('opacity-0');
+            modalEl.querySelector('.modal-content').classList.add('scale-95');
             setTimeout(() => {
-                businessCardModal.classList.add('hidden');
+                modalEl.classList.add('hidden');
             }, 300);
         }
 
-        openBusinessCardBtn.addEventListener('click', openModal);
-        closeBusinessCardBtn.addEventListener('click', closeModal);
+        openBusinessCardBtn.addEventListener('click', () => openModal(businessCardModal));
+        closeBusinessCardBtn.addEventListener('click', () => closeModal(businessCardModal));
         businessCardModal.addEventListener('click', (e) => {
             if (e.target === businessCardModal) {
-                closeModal();
+                closeModal(businessCardModal);
             }
         });
         
@@ -629,12 +780,132 @@
 
         contactAgentEmailBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            closeModal();
+            closeModal(businessCardModal);
             
             setTimeout(() => {
                 contactForm.scrollIntoView({ behavior: 'smooth' });
                 contactNameInput.focus();
             }, 300);
+        });
+
+        // --- Screenshot and Drawing Logic ---
+        const drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+        let currentDrawer = null;
+
+        document.getElementById('drawCircleBtn').addEventListener('click', () => {
+            if (currentDrawer) currentDrawer.disable();
+            currentDrawer = new L.Draw.Circle(map, { shapeOptions: { color: '#38bdf8' } });
+            currentDrawer.enable();
+        });
+
+        document.getElementById('clearDrawingsBtn').addEventListener('click', () => {
+            drawnItems.clearLayers();
+        });
+
+        map.on(L.Draw.Event.CREATED, function (e) {
+            drawnItems.addLayer(e.layer);
+            if (currentDrawer) {
+                currentDrawer.disable();
+                currentDrawer = null;
+            }
+        });
+
+        document.getElementById('screenshotBtn').addEventListener('click', () => {
+            const drawButtons = document.getElementById('screenshotBtn').parentElement.previousElementSibling;
+            const screenshotButtonContainer = document.getElementById('screenshotBtn').parentElement;
+            
+            drawButtons.style.display = 'none';
+            screenshotButtonContainer.style.display = 'none';
+            document.querySelector('.leaflet-control-zoom').style.display = 'none';
+            if (currentDrawer) currentDrawer.disable();
+
+            html2canvas(document.getElementById('map'), { useCORS: true, allowTaint: true }).then(canvas => {
+                drawButtons.style.display = 'flex';
+                screenshotButtonContainer.style.display = 'flex';
+                document.querySelector('.leaflet-control-zoom').style.display = 'block';
+                
+                const screenshotData = canvas.toDataURL('image/png');
+                document.getElementById('screenshotData').value = screenshotData;
+                document.getElementById('screenshot-preview-container').classList.remove('hidden');
+            });
+        });
+        
+        document.getElementById('remove-screenshot').addEventListener('click', () => {
+             document.getElementById('screenshotData').value = '';
+             document.getElementById('screenshot-preview-container').classList.add('hidden');
+        });
+
+        // Screenshot Modal Logic
+        const screenshotModal = document.getElementById('screenshotModal');
+        const openScreenshotModalBtn = document.getElementById('openScreenshotModal');
+        const closeScreenshotModalBtn = document.getElementById('closeScreenshotModal');
+        const fullScreenshotImg = document.getElementById('full-screenshot-img');
+
+        openScreenshotModalBtn.addEventListener('click', () => {
+            const dataUrl = document.getElementById('screenshotData').value;
+            if(dataUrl){
+                fullScreenshotImg.src = dataUrl;
+                openModal(screenshotModal);
+            }
+        });
+
+        closeScreenshotModalBtn.addEventListener('click', () => closeModal(screenshotModal));
+        screenshotModal.addEventListener('click', (e) => {
+            if(e.target === screenshotModal) {
+                closeModal(screenshotModal);
+            }
+        });
+
+        // --- Gemini API Logic ---
+        const getNeighborhoodBtn = document.getElementById('getNeighborhoodBtn');
+        const geminiResultContainer = document.getElementById('geminiResultContainer');
+        const geminiLoader = document.getElementById('geminiLoader');
+        const geminiResultText = document.getElementById('geminiResultText');
+
+        async function callGemini(prompt) {
+            geminiResultContainer.classList.remove('hidden');
+            geminiLoader.classList.remove('hidden');
+            geminiResultText.classList.add('hidden');
+            
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Left empty as per instructions
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                let text = "Неуспешно генериране на отговор.";
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    text = result.candidates[0].content.parts[0].text;
+                }
+                geminiResultText.innerHTML = text;
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                geminiResultText.innerHTML = "Възникна грешка при връзката с услугата.";
+            } finally {
+                geminiLoader.classList.add('hidden');
+                geminiResultText.classList.remove('hidden');
+            }
+        }
+
+        getNeighborhoodBtn.addEventListener('click', () => {
+            const address = document.getElementById('address').value;
+            if (!address) {
+                geminiResultContainer.classList.remove('hidden');
+                geminiResultText.textContent = "Моля, въведете адрес, за да получите анализ на квартала.";
+                return;
+            }
+            const prompt = `Напиши структуриран анализ на квартала около адрес '${address}' в София. Форматирай отговора с HTML, като използваш bullet points (<ul> и <li>). Раздели информацията на следните категории, като използваш тези емоджита като заглавия в <strong> тагове: 🚌 Транспорт, 🎓 Образование, 🌳 Паркове и отдих, 🛒 Пазаруване и 😊 Обща атмосфера. Отговори на български.`;
+            callGemini(prompt);
         });
 
     </script>
