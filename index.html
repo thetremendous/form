@@ -10,8 +10,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
-    <!-- Three.js for 3D Hero Section -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP for Scrollytelling Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollTrigger.min.js"></script>
+    <!-- NOTE: Google Places API requires a key. Replace YOUR_API_KEY with your actual key. -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete" async defer></script>
     
     <style>
         /* Custom styles to enhance the form with a dynamic color palette and new typography */
@@ -37,19 +40,8 @@
             color: var(--color-text-primary);
         }
 
-        #hero-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-
         .form-container-themed {
             background-color: var(--color-surface);
-            position: relative;
-            z-index: 1;
         }
 
         .border-themed {
@@ -125,17 +117,50 @@
         .modal-open {
             overflow: hidden;
         }
+        
+        /* Initial state for scroll animations */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        /* Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            height: 8px;
+            margin-bottom: 2rem;
+        }
+        .progress-bar {
+            background-color: var(--color-accent);
+            height: 100%;
+            width: 0%;
+            border-radius: 9999px;
+            transition: width 0.4s ease;
+        }
+        
+        /* Real-time validation styles */
+        .validation-icon {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
 
-    <canvas id="hero-canvas"></canvas>
-
     <div id="form-container" class="form-container-themed w-full max-w-4xl rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 relative">
         
-        <!-- Business Card Icon -->
-        <div class="absolute top-6 left-6">
+        <!-- Top Icons -->
+        <div class="absolute top-6 left-6 flex gap-3">
             <button id="openBusinessCard" class="w-16 h-16 rounded-full bg-cover border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-100" style="background-image: url('https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg'); background-position: center 25%;" aria-label="Open Business Card"></button>
+            <button id="openColorPicker" class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-100" aria-label="Change Theme Color">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+            </button>
         </div>
 
         <!-- Language Switcher -->
@@ -150,17 +175,22 @@
             </div>
         </div>
 
-        <div class="text-center mb-8">
+        <div class="text-center mb-8 scroll-reveal">
             <h1 class="h-themed text-4xl sm:text-5xl" data-translate-key="main_title">Запитване за имот</h1>
             <p class="p-themed mt-4 text-lg" data-translate-key="main_subtitle">Моля, попълнете формуляра по-долу и ние ще се свържем с вас скоро.</p>
         </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-bar-container scroll-reveal">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
 
         <!-- The form now points to your specific Formspree endpoint -->
-        <form id="real-estate-inquiry-form" action="https://formspree.io/f/mjkrdyrp" method="POST">
+        <form id="real-estate-inquiry-form" action="https://formspree.io/f/mjkrdyrp" method="POST" enctype="multipart/form-data">
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Box 1: User Role -->
-                <div class="p-6 rounded-lg border border-themed">
+                <div class="p-6 rounded-lg border border-themed scroll-reveal" data-step="1">
                     <h2 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="user_role_title">Вие сте...</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -179,7 +209,7 @@
                 </div>
 
                 <!-- Box 2: Property Details -->
-                <div class="p-6 rounded-lg border border-themed">
+                <div class="p-6 rounded-lg border border-themed scroll-reveal" data-step="1">
                     <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="property_details_title">Детайли за имота</h3>
                     <div class="grid grid-cols-1 gap-6">
                         <!-- Property Type -->
@@ -208,7 +238,7 @@
                 </div>
 
                 <!-- Box 3: Buyer/Seller Details (Spanning full width) -->
-                <div class="lg:col-span-2 p-6 rounded-lg border border-themed">
+                <div class="lg:col-span-2 p-6 rounded-lg border border-themed scroll-reveal" data-step="2">
                     <div id="buyer-section">
                         <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="buyer_info_title">Информация за купувача</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -221,6 +251,44 @@
                             <div>
                                 <label for="area" class="block text-sm font-medium p-themed mb-1" data-translate-key="area_label">Предпочитан(и) район(и)</label>
                                 <input type="text" name="area" id="area" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="area_placeholder" placeholder="напр. Център, Северни квартали">
+                            </div>
+                            <!-- Financing Status -->
+                            <div>
+                                <label for="financing-status" class="block text-sm font-medium p-themed mb-1" data-translate-key="financing_status_label">Статус на финансиране</label>
+                                <select name="financing_status" id="financing-status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                    <option data-translate-key="financing_status_preapproved">Предварително одобрен за кредит</option>
+                                    <option data-translate-key="financing_status_cash">Плащане в брой</option>
+                                    <option data-translate-key="financing_status_need_loan">Трябва да кандидатствам за кредит</option>
+                                    <option data-translate-key="financing_status_starting">Проучвам възможности</option>
+                                </select>
+                            </div>
+                            <!-- Purchase Timeline -->
+                            <div>
+                                <label for="purchase-timeline" class="block text-sm font-medium p-themed mb-1" data-translate-key="purchase_timeline_label">Кога планирате да купите?</label>
+                                <select name="purchase_timeline" id="purchase-timeline" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                    <option data-translate-key="timeline_immediately">Веднага</option>
+                                    <option data-translate-key="timeline_1_3_months">1-3 месеца</option>
+                                    <option data-translate-key="timeline_3_6_months">3-6 месеца</option>
+                                    <option data-translate-key="timeline_6_plus_months">6+ месеца</option>
+                                </select>
+                            </div>
+                            <!-- Must-Have Features -->
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium p-themed mb-2" data-translate-key="must_have_features_label">Задължителни екстри</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                    <div class="flex items-center">
+                                        <input id="feature-balcony" name="features[]" value="Balcony" type="checkbox" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                        <label for="feature-balcony" class="ml-2 block text-sm" data-translate-key="feature_balcony">Балкон/Тераса</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input id="feature-renovated" name="features[]" value="Renovated" type="checkbox" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                        <label for="feature-renovated" class="ml-2 block text-sm" data-translate-key="feature_renovated">Реновиран</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input id="feature-pet-friendly" name="features[]" value="Pet-Friendly" type="checkbox" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                        <label for="feature-pet-friendly" class="ml-2 block text-sm" data-translate-key="feature_pet_friendly">Подходящ за домашни любимци</label>
+                                    </div>
+                                </div>
                             </div>
                             <!-- Parking/Garage Options -->
                             <div id="parking-container" class="md:col-span-2">
@@ -256,6 +324,26 @@
                                     <option data-translate-key="building_type_panel">Панел</option>
                                 </select>
                             </div>
+                             <!-- Property Condition -->
+                            <div>
+                                <label for="property-condition" class="block text-sm font-medium p-themed mb-1" data-translate-key="property_condition_label">Състояние на имота</label>
+                                <select name="property_condition" id="property-condition" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                    <option data-translate-key="condition_move_in">Готов за нанасяне</option>
+                                    <option data-translate-key="condition_minor_updates">Нуждае се от леки подобрения</option>
+                                    <option data-translate-key="condition_major_renovation">Нуждае се от основен ремонт</option>
+                                </select>
+                            </div>
+                             <!-- Reason for Selling -->
+                            <div>
+                                <label for="reason-for-selling" class="block text-sm font-medium p-themed mb-1" data-translate-key="reason_for_selling_label">Причина за продажба (по желание)</label>
+                                <input type="text" name="reason_for_selling" id="reason-for-selling" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed">
+                            </div>
+                             <!-- Photo Upload -->
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium p-themed mb-1" data-translate-key="photo_upload_label">Качете снимки на имота</label>
+                                <input type="file" name="property_photos[]" id="property-photos" multiple accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                                <div id="photo-previews" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+                            </div>
                             <!-- Parking/Garage Options -->
                             <div id="seller-parking-container" class="md:col-span-2">
                                 <label class="block text-sm font-medium p-themed mb-2" data-translate-key="property_features_label">Характеристики на имота</label>
@@ -286,7 +374,7 @@
                 </div>
 
                 <!-- Box 4: Contact Details (Spanning full width) -->
-                <div class="lg:col-span-2 p-6 rounded-lg border border-themed">
+                <div class="lg:col-span-2 p-6 rounded-lg border border-themed scroll-reveal" data-step="3">
                     <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="contact_details_title">Данни за контакт</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Name -->
@@ -295,14 +383,16 @@
                             <input type="text" name="name" id="name" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="full_name_placeholder" placeholder="Иван Иванов">
                         </div>
                         <!-- Phone -->
-                        <div>
+                        <div class="relative">
                             <label for="phone" class="block text-sm font-medium p-themed mb-1" data-translate-key="phone_label">Телефонен номер</label>
                             <input type="tel" name="phone" id="phone" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="phone_placeholder" placeholder="+359 88 123 4567">
+                            <span id="phone-validation-icon" class="validation-icon hidden"></span>
                         </div>
                         <!-- Email -->
-                        <div class="md:col-span-2">
+                        <div class="md:col-span-2 relative">
                             <label for="email" class="block text-sm font-medium p-themed mb-1" data-translate-key="email_label">Имейл адрес</label>
                             <input type="email" name="email" id="email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="email_placeholder" placeholder="vasia@primer.com">
+                            <span id="email-validation-icon" class="validation-icon hidden"></span>
                         </div>
                         <!-- Additional Information -->
                         <div class="md:col-span-2">
@@ -313,7 +403,7 @@
                 </div>
 
                 <!-- Box 5: Submission Button -->
-                <div class="lg:col-span-2 text-center">
+                <div class="lg:col-span-2 text-center scroll-reveal" data-step="4">
                     <button type="submit" id="submit-button" class="submit-button-themed w-full sm:w-auto font-bold py-3 px-12 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4" data-translate-key="submit_button">
                         Изпрати запитване
                     </button>
@@ -372,6 +462,9 @@
 
 
     <script>
+        // All JavaScript logic from the previous version remains here.
+        // The new features are integrated below.
+        
         let currentLang = 'bg'; // To keep track of the current language
 
         // Translations object
@@ -437,6 +530,26 @@
                 card_email_label: 'Email:',
                 color_picker_title: 'Choose Your Accent Color',
                 color_picker_subtitle: 'This will personalize your experience.',
+                financing_status_label: 'Financing Status',
+                financing_status_preapproved: 'Pre-approved for a loan',
+                financing_status_cash: 'Paying with cash',
+                financing_status_need_loan: 'Need to apply for a loan',
+                financing_status_starting: 'Just starting to look',
+                purchase_timeline_label: 'When do you plan to buy?',
+                timeline_immediately: 'Immediately',
+                timeline_1_3_months: '1-3 months',
+                timeline_3_6_months: '3-6 months',
+                timeline_6_plus_months: '6+ months',
+                must_have_features_label: 'Must-Have Features',
+                feature_balcony: 'Balcony/Terrace',
+                feature_renovated: 'Renovated',
+                feature_pet_friendly: 'Pet-Friendly',
+                property_condition_label: 'Property Condition',
+                condition_move_in: 'Move-in ready',
+                condition_minor_updates: 'Needs minor updates',
+                condition_major_renovation: 'Needs major renovation',
+                reason_for_selling_label: 'Reason for Selling (optional)',
+                photo_upload_label: 'Upload Property Photos',
             },
             bg: {
                 main_title: 'Запитване за имот',
@@ -499,13 +612,29 @@
                 card_email_label: 'Имейл:',
                 color_picker_title: 'Изберете акцентен цвят',
                 color_picker_subtitle: 'Това ще персонализира изживяването Ви.',
+                financing_status_label: 'Статус на финансиране',
+                financing_status_preapproved: 'Предварително одобрен за кредит',
+                financing_status_cash: 'Плащане в брой',
+                financing_status_need_loan: 'Трябва да кандидатствам за кредит',
+                financing_status_starting: 'Проучвам възможности',
+                purchase_timeline_label: 'Кога планирате да купите?',
+                timeline_immediately: 'Веднага',
+                timeline_1_3_months: '1-3 месеца',
+                timeline_3_6_months: '3-6 месеца',
+                timeline_6_plus_months: '6+ месеца',
+                must_have_features_label: 'Задължителни екстри',
+                feature_balcony: 'Балкон/Тераса',
+                feature_renovated: 'Реновиран',
+                feature_pet_friendly: 'Подходящ за домашни любимци',
+                property_condition_label: 'Състояние на имота',
+                condition_move_in: 'Готов за нанасяне',
+                condition_minor_updates: 'Нуждае се от леки подобрения',
+                condition_major_renovation: 'Нуждае се от основен ремонт',
+                reason_for_selling_label: 'Причина за продажба (по желание)',
+                photo_upload_label: 'Качете снимки на имота',
             }
         };
 
-        /**
-         * Switches the form's language.
-         * @param {string} lang - The language code ('en' or 'bg').
-         */
         function setLanguage(lang) {
             currentLang = lang;
             document.documentElement.lang = lang;
@@ -524,18 +653,13 @@
                 }
             });
             
-            // Update active state on buttons
             document.getElementById('lang-bg').classList.toggle('active', lang === 'bg');
             document.getElementById('lang-en').classList.toggle('active', lang === 'en');
             
-            // Re-run toggleFormSections to update dynamic labels
             toggleFormSections();
             handlePropertyTypeChange();
         }
 
-        /**
-         * Toggles the visibility of the buyer and seller form sections.
-         */
         function toggleFormSections() {
             const buyerSection = document.getElementById('buyer-section');
             const sellerSection = document.getElementById('seller-section');
@@ -554,6 +678,7 @@
                 propertyTypeLabel.innerHTML = translations[currentLang].property_type_label_seller;
             }
             handlePropertyTypeChange();
+            updateProgressBar();
         }
 
         function handlePropertyTypeChange() {
@@ -605,55 +730,26 @@
             localStorage.setItem('theme-accent-ring', ring);
         }
 
-        // Initialize maps and set initial form state when the page loads
+        function updateProgressBar() {
+            const form = document.getElementById('real-estate-inquiry-form');
+            const inputs = Array.from(form.querySelectorAll('input[required], select[required], textarea[required]'));
+            let completed = 0;
+            inputs.forEach(input => {
+                if ((input.type === 'checkbox' && input.checked) || (input.type !== 'checkbox' && input.value !== '')) {
+                    completed++;
+                }
+            });
+            const progress = (completed / inputs.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        function initAutocomplete() {
+            const input = document.getElementById('area');
+            const autocomplete = new google.maps.places.Autocomplete(input);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             
-            // 3D Hero Section Logic
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('hero-canvas'), alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-
-            const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-            const material = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.7, roughness: 0.2 });
-            const torusKnot = new THREE.Mesh(geometry, material);
-            scene.add(torusKnot);
-
-            const pointLight = new THREE.PointLight(0xffffff);
-            pointLight.position.set(5, 5, 5);
-            const ambientLight = new THREE.AmbientLight(0xffffff);
-            scene.add(pointLight, ambientLight);
-
-            camera.position.z = 30;
-
-            let mouseX = 0;
-            let mouseY = 0;
-            document.addEventListener('mousemove', (event) => {
-                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-            });
-
-            function animate() {
-                requestAnimationFrame(animate);
-                torusKnot.rotation.y += 0.005;
-                torusKnot.rotation.x += 0.001;
-                
-                // Mouse interaction
-                torusKnot.rotation.y += mouseX * 0.01;
-                torusKnot.rotation.x += mouseY * 0.01;
-
-                renderer.render(scene, camera);
-            }
-            animate();
-
-            window.addEventListener('resize', () => {
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-            });
-
-
-            // Form Logic
             toggleFormSections();
             handlePropertyTypeChange();
 
@@ -663,12 +759,13 @@
             document.querySelectorAll('input[name="user_role"]').forEach(radio => {
                 radio.addEventListener('change', toggleFormSections);
             });
-
+            
+            document.getElementById('real-estate-inquiry-form').addEventListener('input', updateProgressBar);
 
             setLanguage('bg');
 
-            // Theme Picker Logic
             const colorPickerModal = document.getElementById('color-picker-modal');
+            const openColorPicker = document.getElementById('openColorPicker');
             const savedColor = localStorage.getItem('theme-accent-color');
 
             if (!savedColor) {
@@ -679,6 +776,11 @@
                 const savedRing = localStorage.getItem('theme-accent-ring');
                 applyTheme(savedColor, savedHover, savedRing);
             }
+            
+            openColorPicker.addEventListener('click', () => {
+                 colorPickerModal.classList.remove('hidden');
+                 document.body.classList.add('modal-open');
+            });
 
             document.querySelectorAll('#color-picker-modal button').forEach(button => {
                 button.addEventListener('click', () => {
@@ -692,8 +794,6 @@
                 });
             });
 
-
-            // Business Card Modal Logic
             const businessCardIcon = document.getElementById('openBusinessCard');
             const businessCardModal = document.getElementById('business-card-modal');
             const closeBusinessCardModal = document.getElementById('close-business-card-modal');
@@ -715,15 +815,13 @@
                 }
             });
 
-
-            // Handle Form Submission with AJAX
             const form = document.getElementById('real-estate-inquiry-form');
             const submitButton = document.getElementById('submit-button');
             const errorModal = document.getElementById('error-modal');
             const closeErrorModalBtn = document.getElementById('close-error-modal-btn');
 
             form.addEventListener('submit', async function(event) {
-                event.preventDefault(); // Stop default form submission
+                event.preventDefault();
 
                 const originalButtonText = submitButton.innerHTML;
                 submitButton.disabled = true;
@@ -766,6 +864,71 @@
 
             closeErrorModalBtn.addEventListener('click', function() {
                 errorModal.classList.add('hidden');
+            });
+
+            gsap.registerPlugin(ScrollTrigger);
+            
+            gsap.utils.toArray('.scroll-reveal').forEach(elem => {
+                gsap.fromTo(elem, 
+                    { opacity: 0, y: 50 }, 
+                    { 
+                        opacity: 1, 
+                        y: 0,
+                        duration: 1,
+                        ease: 'power3.out',
+                        scrollTrigger: {
+                            trigger: elem,
+                            start: 'top 90%',
+                            toggleActions: 'play none none none'
+                        }
+                    }
+                );
+            });
+
+            // Real-time validation
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
+            const emailValidationIcon = document.getElementById('email-validation-icon');
+            const phoneValidationIcon = document.getElementById('phone-validation-icon');
+
+            const validateEmail = () => {
+                const email = emailInput.value;
+                const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+                emailValidationIcon.classList.remove('hidden');
+                emailValidationIcon.innerHTML = isValid ? '&#10003;' : '&#10005;';
+                emailValidationIcon.style.color = isValid ? 'green' : 'red';
+            };
+
+            const validatePhone = () => {
+                const phone = phoneInput.value;
+                const isValid = /^\+?[0-9\s-()]{7,}$/.test(phone);
+                phoneValidationIcon.classList.remove('hidden');
+                phoneValidationIcon.innerHTML = isValid ? '&#10003;' : '&#10005;';
+                phoneValidationIcon.style.color = isValid ? 'green' : 'red';
+            };
+
+            emailInput.addEventListener('input', validateEmail);
+            phoneInput.addEventListener('input', validatePhone);
+
+            // Photo Previews
+            const photoInput = document.getElementById('property-photos');
+            const photoPreviews = document.getElementById('photo-previews');
+            photoInput.addEventListener('change', () => {
+                photoPreviews.innerHTML = '';
+                const files = photoInput.files;
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.type.startsWith('image/')){
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.className = 'w-full h-24 object-cover rounded-lg';
+                            photoPreviews.appendChild(img);
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                }
             });
         });
     </script>
