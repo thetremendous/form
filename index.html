@@ -6,49 +6,132 @@
     <title>Формуляр за запитване за имот</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts: Inter for body and Playfair Display for headlines -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <!-- Three.js for 3D Hero Section -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <style>
-        /* Custom styles to enhance the form */
-        body {
-            font-family: 'Inter', sans-serif;
+        /* Custom styles to enhance the form with a dynamic color palette and new typography */
+        :root {
+            --color-bg: #f4f1eb; /* Sand */
+            --color-surface: #ffffff; /* White */
+            --color-text-primary: #333333; /* Charcoal */
+            --color-text-secondary: #6b7280; /* Soft Gray */
+            --color-border: #d1d5db; /* Soft Gray */
+            
+            /* Default Accent Color (will be overridden by user selection) */
+            --color-accent: #0ea5e9; /* Vibrant Sky Blue */
+            --color-accent-hover: #0284c7;
+            --color-accent-ring: #7dd3fc;
+
+            --font-body: 'Inter', sans-serif;
+            --font-headline: 'Playfair Display', serif;
         }
-        /* Style for the radio button labels */
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+        }
+
+        #hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .form-container-themed {
+            background-color: var(--color-surface);
+            position: relative;
+            z-index: 1;
+        }
+
+        .border-themed {
+            border-color: var(--color-border);
+        }
+        
+        .h-themed {
+             color: var(--color-text-primary);
+             font-family: var(--font-headline);
+             font-weight: 800;
+        }
+
+        .h-section-themed {
+             color: var(--color-text-primary);
+             font-family: var(--font-body);
+             font-weight: 600;
+        }
+
+        .p-themed {
+            color: var(--color-text-secondary);
+        }
+
         .user-role-label {
             transition: all 0.2s ease-in-out;
+            border-color: var(--color-border);
+            color: var(--color-text-secondary);
         }
-        /* Style for when radio button is checked */
+        
         input[type="radio"]:checked + .user-role-label {
-            background-color: #3b82f6; /* blue-500 */
+            background-color: var(--color-accent);
             color: white;
-            border-color: #3b82f6; /* blue-500 */
+            border-color: var(--color-accent);
         }
-        /* Hide the actual radio button */
+
         input[type="radio"] {
             display: none;
         }
-        /* Language switcher styles */
+
         .lang-switcher button.active {
-            background-color: #3b82f6;
+            background-color: var(--color-accent);
             color: white;
         }
-        /* Style for disabled button */
+        
+        .form-input-themed {
+            border-color: var(--color-border);
+        }
+
+        .form-input-themed:focus {
+            --tw-ring-color: var(--color-accent-ring);
+            border-color: var(--color-accent);
+        }
+        
+        .checkbox-themed {
+             color: var(--color-accent);
+        }
+        
+        .submit-button-themed {
+            background-color: var(--color-accent);
+            color: white;
+        }
+        .submit-button-themed:hover {
+             background-color: var(--color-accent-hover);
+        }
+        .submit-button-themed:focus {
+             --tw-ring-color: var(--color-accent-ring);
+        }
+
         button:disabled {
             opacity: 0.7;
             cursor: not-allowed;
         }
-        /* Class to prevent body scroll when a modal is open */
+        
         .modal-open {
             overflow: hidden;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+<body class="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
 
-    <div id="form-container" class="w-full max-w-3xl bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 relative">
+    <canvas id="hero-canvas"></canvas>
+
+    <div id="form-container" class="form-container-themed w-full max-w-4xl rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 relative">
         
         <!-- Business Card Icon -->
         <div class="absolute top-6 left-6">
@@ -58,179 +141,183 @@
         <!-- Language Switcher -->
         <div class="lang-switcher flex justify-end mb-4">
             <div class="inline-flex rounded-md shadow-sm" role="group">
-                <button type="button" id="lang-bg" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-500">
+                <button type="button" id="lang-bg" class="px-4 py-2 text-sm font-medium bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 focus:z-10 focus:ring-2">
                     BG
                 </button>
-                <button type="button" id="lang-en" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-r border-gray-200 rounded-r-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-500">
+                <button type="button" id="lang-en" class="px-4 py-2 text-sm font-medium bg-white border-t border-b border-r border-gray-200 rounded-r-lg hover:bg-gray-100 focus:z-10 focus:ring-2">
                     EN
                 </button>
             </div>
         </div>
 
         <div class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800" data-translate-key="main_title">Запитване за имот</h1>
-            <p class="text-gray-500 mt-2" data-translate-key="main_subtitle">Моля, попълнете формуляра по-долу и ние ще се свържем с вас скоро.</p>
+            <h1 class="h-themed text-4xl sm:text-5xl" data-translate-key="main_title">Запитване за имот</h1>
+            <p class="p-themed mt-4 text-lg" data-translate-key="main_subtitle">Моля, попълнете формуляра по-долу и ние ще се свържем с вас скоро.</p>
         </div>
 
         <!-- The form now points to your specific Formspree endpoint -->
         <form id="real-estate-inquiry-form" action="https://formspree.io/f/mjkrdyrp" method="POST">
-
-            <!-- Step 1: User Role Selection -->
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4" data-translate-key="user_role_title">Вие сте...</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <input type="radio" id="role-buyer" name="user_role" value="Buyer" checked onchange="toggleFormSections()">
-                        <label for="role-buyer" class="user-role-label flex items-center justify-center w-full p-4 border border-gray-300 rounded-lg cursor-pointer text-lg font-medium text-gray-700" data-translate-key="role_buyer">
-                            Купувач
-                        </label>
-                    </div>
-                    <div>
-                        <input type="radio" id="role-seller" name="user_role" value="Seller" onchange="toggleFormSections()">
-                        <label for="role-seller" class="user-role-label flex items-center justify-center w-full p-4 border border-gray-300 rounded-lg cursor-pointer text-lg font-medium text-gray-700" data-translate-key="role_seller">
-                            Продавач
-                        </label>
-                    </div>
-                </div>
-            </div>
             
-            <!-- Step 2: Common Property Details -->
-            <div class="mt-8">
-                <h3 class="text-xl font-semibold text-gray-700 mb-6 border-b pb-2" data-translate-key="property_details_title">Детайли за имота</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <!-- Property Type -->
-                    <div class="md:col-span-2">
-                        <label for="property-type" id="property-type-label" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="property_type_label_buyer">Какъв имот търсите?</label>
-                        <select name="property_type" id="property-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white">
-                            <option data-translate-key="property_type_house">Къща</option>
-                            <option data-translate-key="property_type_flat" selected>Апартамент</option>
-                            <option data-translate-key="property_type_parcel">Парцел</option>
-                            <option data-translate-key="property_type_business_building">Бизнес сграда</option>
-                            <option data-translate-key="property_type_living_building">Жилищна сграда</option>
-                            <option data-translate-key="property_type_vacational_property">Ваканционен имот</option>
-                        </select>
-                    </div>
-                    <!-- Square Meters -->
-                    <div>
-                        <label for="sqm" id="sqm-label" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="sqm_label_buyer">Желана квадратура (м²)</label>
-                        <input type="text" name="sqm" id="sqm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="sqm_placeholder" placeholder="напр. 120-150">
-                    </div>
-                    <!-- Bedrooms -->
-                    <div id="bedrooms-container">
-                        <label for="bedrooms" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="bedrooms_label">Брой спални</label>
-                        <input type="number" name="bedrooms" id="bedrooms" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="bedrooms_placeholder" placeholder="напр. 3">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Box 1: User Role -->
+                <div class="p-6 rounded-lg border border-themed">
+                    <h2 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="user_role_title">Вие сте...</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <input type="radio" id="role-buyer" name="user_role" value="Buyer" checked onchange="toggleFormSections()">
+                            <label for="role-buyer" class="user-role-label flex items-center justify-center w-full p-4 rounded-lg cursor-pointer text-lg font-medium" data-translate-key="role_buyer">
+                                Купувач
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" id="role-seller" name="user_role" value="Seller" onchange="toggleFormSections()">
+                            <label for="role-seller" class="user-role-label flex items-center justify-center w-full p-4 rounded-lg cursor-pointer text-lg font-medium" data-translate-key="role_seller">
+                                Продавач
+                            </label>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Step 3: Buyer-Specific Details -->
-            <div id="buyer-section">
-                <h3 class="text-xl font-semibold text-gray-700 mb-6 border-b pb-2 mt-8" data-translate-key="buyer_info_title">Информация за купувача</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Budget -->
-                    <div id="budget-container">
-                        <label for="budget-text" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="budget_label_buyer">Какъв е Вашият бюджет?</label>
-                        <input type="text" name="budget" id="budget-text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="budget_placeholder" placeholder="напр. 125000">
+                <!-- Box 2: Property Details -->
+                <div class="p-6 rounded-lg border border-themed">
+                    <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="property_details_title">Детайли за имота</h3>
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Property Type -->
+                        <div>
+                            <label for="property-type" id="property-type-label" class="block text-sm font-medium p-themed mb-1" data-translate-key="property_type_label_buyer">Какъв имот търсите?</label>
+                            <select name="property_type" id="property-type" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                <option data-translate-key="property_type_house">Къща</option>
+                                <option data-translate-key="property_type_flat" selected>Апартамент</option>
+                                <option data-translate-key="property_type_parcel">Парцел</option>
+                                <option data-translate-key="property_type_business_building">Бизнес сграда</option>
+                                <option data-translate-key="property_type_living_building">Жилищна сграда</option>
+                                <option data-translate-key="property_type_vacational_property">Ваканционен имот</option>
+                            </select>
+                        </div>
+                        <!-- Square Meters -->
+                        <div>
+                            <label for="sqm" id="sqm-label" class="block text-sm font-medium p-themed mb-1" data-translate-key="sqm_label_buyer">Желана квадратура (м²)</label>
+                            <input type="text" name="sqm" id="sqm" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="sqm_placeholder" placeholder="напр. 120-150">
+                        </div>
+                        <!-- Bedrooms -->
+                        <div id="bedrooms-container">
+                            <label for="bedrooms" class="block text-sm font-medium p-themed mb-1" data-translate-key="bedrooms_label">Брой спални</label>
+                            <input type="number" name="bedrooms" id="bedrooms" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="bedrooms_placeholder" placeholder="напр. 3">
+                        </div>
                     </div>
-                    <!-- Area of Living -->
-                    <div>
-                        <label for="area" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="area_label">Предпочитан(и) район(и)</label>
-                        <input type="text" name="area" id="area" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="area_placeholder" placeholder="напр. Център, Северни квартали">
-                    </div>
-                     <!-- Parking/Garage Options -->
-                    <div id="parking-container" class="md:col-span-2">
-                         <label class="block text-sm font-medium text-gray-600 mb-2" data-translate-key="parking_needs_label">Нужди за паркиране</label>
-                         <div class="flex items-center space-x-6">
-                            <div class="flex items-center">
-                                <input id="buyer-garage" name="buyer_needs_garage" type="checkbox" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                <label for="buyer-garage" class="ml-2 block text-sm text-gray-900" data-translate-key="garage_label">Гараж</label>
+                </div>
+
+                <!-- Box 3: Buyer/Seller Details (Spanning full width) -->
+                <div class="lg:col-span-2 p-6 rounded-lg border border-themed">
+                    <div id="buyer-section">
+                        <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="buyer_info_title">Информация за купувача</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Budget -->
+                            <div id="budget-container">
+                                <label for="budget-text" class="block text-sm font-medium p-themed mb-1" data-translate-key="budget_label_buyer">Какъв е Вашият бюджет?</label>
+                                <input type="text" name="budget" id="budget-text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="budget_placeholder" placeholder="напр. 125000">
                             </div>
-                            <div class="flex items-center">
-                                <input id="buyer-parking" name="buyer_needs_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                <label for="buyer-parking" class="ml-2 block text-sm text-gray-900" data-translate-key="parking_spot_label">Паркомясто</label>
+                            <!-- Area of Living -->
+                            <div>
+                                <label for="area" class="block text-sm font-medium p-themed mb-1" data-translate-key="area_label">Предпочитан(и) район(и)</label>
+                                <input type="text" name="area" id="area" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="area_placeholder" placeholder="напр. Център, Северни квартали">
+                            </div>
+                            <!-- Parking/Garage Options -->
+                            <div id="parking-container" class="md:col-span-2">
+                                <label class="block text-sm font-medium p-themed mb-2" data-translate-key="parking_needs_label">Нужди за паркиране</label>
+                                <div class="flex items-center space-x-6">
+                                    <div class="flex items-center">
+                                        <input id="buyer-garage" name="buyer_needs_garage" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                        <label for="buyer-garage" class="ml-2 block text-sm" data-translate-key="garage_label">Гараж</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input id="buyer-parking" name="buyer_needs_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                        <label for="buyer-parking" class="ml-2 block text-sm" data-translate-key="parking_spot_label">Паркомясто</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="seller-section" class="hidden">
+                        <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="seller_info_title">Информация за продавача</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Year of Building -->
+                            <div id="year-built-container">
+                                <label for="year-built" class="block text-sm font-medium p-themed mb-1" data-translate-key="year_built_label">Година на строеж</label>
+                                <input type="number" name="year_built" id="year-built" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="year_built_placeholder" placeholder="напр. 1995">
+                            </div>
+                            <!-- Type of Building -->
+                            <div id="building-type-container">
+                                <label for="building-type" class="block text-sm font-medium p-themed mb-1" data-translate-key="building_type_label">Тип на сградата</label>
+                                <select name="building_type" id="building-type" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                    <option data-translate-key="building_type_tuhla">Тухла</option>
+                                    <option data-translate-key="building_type_epk">ЕПК</option>
+                                    <option data-translate-key="building_type_panel">Панел</option>
+                                </select>
+                            </div>
+                            <!-- Parking/Garage Options -->
+                            <div id="seller-parking-container" class="md:col-span-2">
+                                <label class="block text-sm font-medium p-themed mb-2" data-translate-key="property_features_label">Характеристики на имота</label>
+                                <div class="flex items-center space-x-6">
+                                    <div class="flex items-center">
+                                        <input id="seller-garage" name="property_has_garage" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                        <label for="seller-garage" class="ml-2 block text-sm" data-translate-key="garage_label_seller">Гараж</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input id="seller-parking" name="property_has_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                        <label for="seller-parking" class="ml-2 block text-sm" data-translate-key="parking_spot_label_seller">Паркомясто</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Sell within 6 months -->
+                            <div class="md:col-span-2">
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="sell-within-6-months" name="sell_within_6_months" type="checkbox" value="Yes" class="focus:ring-2 h-4 w-4 border-gray-300 rounded checkbox-themed">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="sell-within-6-months" class="font-medium" data-translate-key="sell_within_6_months_label">Искам да продам в рамките на следващите 6 месеца</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="seller-section" class="hidden">
-                 <h3 class="text-xl font-semibold text-gray-700 mb-6 border-b pb-2 mt-8" data-translate-key="seller_info_title">Информация за продавача</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Year of Building -->
-                    <div id="year-built-container">
-                        <label for="year-built" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="year_built_label">Година на строеж</label>
-                        <input type="number" name="year_built" id="year-built" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="year_built_placeholder" placeholder="напр. 1995">
-                    </div>
-                    <!-- Type of Building -->
-                    <div id="building-type-container">
-                        <label for="building-type" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="building_type_label">Тип на сградата</label>
-                        <select name="building_type" id="building-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white">
-                            <option data-translate-key="building_type_tuhla">Тухла</option>
-                            <option data-translate-key="building_type_epk">ЕПК</option>
-                            <option data-translate-key="building_type_panel">Панел</option>
-                        </select>
-                    </div>
-                    <!-- Parking/Garage Options -->
-                    <div id="seller-parking-container" class="md:col-span-2">
-                         <label class="block text-sm font-medium text-gray-600 mb-2" data-translate-key="property_features_label">Характеристики на имота</label>
-                         <div class="flex items-center space-x-6">
-                            <div class="flex items-center">
-                                <input id="seller-garage" name="property_has_garage" type="checkbox" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                <label for="seller-garage" class="ml-2 block text-sm text-gray-900" data-translate-key="garage_label_seller">Гараж</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input id="seller-parking" name="property_has_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                <label for="seller-parking" class="ml-2 block text-sm text-gray-900" data-translate-key="parking_spot_label_seller">Паркомясто</label>
-                            </div>
+                <!-- Box 4: Contact Details (Spanning full width) -->
+                <div class="lg:col-span-2 p-6 rounded-lg border border-themed">
+                    <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="contact_details_title">Данни за контакт</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Name -->
+                        <div>
+                            <label for="name" class="block text-sm font-medium p-themed mb-1" data-translate-key="full_name_label">Вашите имена</label>
+                            <input type="text" name="name" id="name" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="full_name_placeholder" placeholder="Иван Иванов">
                         </div>
-                    </div>
-                    <!-- Sell within 6 months -->
-                    <div class="md:col-span-2">
-                        <div class="flex items-start">
-                            <div class="flex items-center h-5">
-                                <input id="sell-within-6-months" name="sell_within_6_months" type="checkbox" value="Yes" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                            </div>
-                            <div class="ml-3 text-sm">
-                                <label for="sell-within-6-months" class="font-medium text-gray-700" data-translate-key="sell_within_6_months_label">Искам да продам в рамките на следващите 6 месеца</label>
-                            </div>
+                        <!-- Phone -->
+                        <div>
+                            <label for="phone" class="block text-sm font-medium p-themed mb-1" data-translate-key="phone_label">Телефонен номер</label>
+                            <input type="tel" name="phone" id="phone" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="phone_placeholder" placeholder="+359 88 123 4567">
+                        </div>
+                        <!-- Email -->
+                        <div class="md:col-span-2">
+                            <label for="email" class="block text-sm font-medium p-themed mb-1" data-translate-key="email_label">Имейл адрес</label>
+                            <input type="email" name="email" id="email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="email_placeholder" placeholder="vasia@primer.com">
+                        </div>
+                        <!-- Additional Information -->
+                        <div class="md:col-span-2">
+                            <label for="message" class="block text-sm font-medium p-themed mb-1" data-translate-key="additional_info_label">Допълнителна информация</label>
+                            <textarea name="message" id="message" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="additional_info_placeholder" placeholder="Има ли нещо друго, което бихте искали да споделите?"></textarea>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Step 4: Common Contact Information -->
-            <div class="mt-8 pt-6 border-t">
-                 <h3 class="text-xl font-semibold text-gray-700 mb-6" data-translate-key="contact_details_title">Данни за контакт</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Name -->
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="full_name_label">Вашите имена</label>
-                        <input type="text" name="name" id="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="full_name_placeholder" placeholder="Иван Иванов">
-                    </div>
-                    <!-- Phone -->
-                    <div>
-                        <label for="phone" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="phone_label">Телефонен номер</label>
-                        <input type="tel" name="phone" id="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="phone_placeholder" placeholder="+359 88 123 4567">
-                    </div>
-                    <!-- Email -->
-                    <div class="md:col-span-2">
-                        <label for="email" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="email_label">Имейл адрес</label>
-                        <input type="email" name="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="email_placeholder" placeholder="vasia@primer.com">
-                    </div>
-                    <!-- Additional Information -->
-                    <div class="md:col-span-2">
-                        <label for="message" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="additional_info_label">Допълнителна информация</label>
-                        <textarea name="message" id="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="additional_info_placeholder" placeholder="Има ли нещо друго, което бихте искали да споделите?"></textarea>
-                    </div>
+                <!-- Box 5: Submission Button -->
+                <div class="lg:col-span-2 text-center">
+                    <button type="submit" id="submit-button" class="submit-button-themed w-full sm:w-auto font-bold py-3 px-12 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4" data-translate-key="submit_button">
+                        Изпрати запитване
+                    </button>
                 </div>
-            </div>
-
-            <!-- Submission Button -->
-            <div class="mt-8 text-center">
-                <button type="submit" id="submit-button" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-12 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300" data-translate-key="submit_button">
-                    Изпрати запитване
-                </button>
             </div>
         </form>
     </div>
@@ -239,12 +326,12 @@
     <div id="error-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
             <div class="mt-3 text-center">
-                <h3 class="text-lg leading-6 font-medium text-gray-900" data-translate-key="error_modal_title">Грешка при изпращане</h3>
+                <h3 class="h-themed text-lg leading-6 font-medium" data-translate-key="error_modal_title">Грешка при изпращане</h3>
                 <div class="mt-2 px-7 py-3">
-                    <p id="error-message" class="text-sm text-gray-500" data-translate-key="error_modal_message">Възникна проблем при изпращането на формуляра. Моля, опитайте отново.</p>
+                    <p id="error-message" class="text-sm p-themed" data-translate-key="error_modal_message">Възникна проблем при изпращането на формуляра. Моля, опитайте отново.</p>
                 </div>
                 <div class="items-center px-4 py-3">
-                    <button id="close-error-modal-btn" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300" data-translate-key="error_modal_close">
+                    <button id="close-error-modal-btn" class="submit-button-themed px-4 py-2 text-base font-medium rounded-md w-full shadow-sm focus:outline-none focus:ring-2" data-translate-key="error_modal_close">
                         Затвори
                     </button>
                 </div>
@@ -256,14 +343,29 @@
     <div id="business-card-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
         <div class="relative bg-white p-8 rounded-lg shadow-lg max-w-sm w-full text-center">
             <span id="close-business-card-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-3xl cursor-pointer font-bold">&times;</span>
-            <img src="https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg" alt="Agent Photo" class="w-32 h-32 object-cover object-top rounded-full mx-auto mb-4 border-2 border-blue-500" style="object-position: center 25%;">
-            <h2 class="text-2xl font-bold text-gray-800" data-translate-key="card_agent_name">Цветелина Иванова</h2>
-            <p class="text-gray-600 mt-1" data-translate-key="card_agent_title">консултант недвижими имоти - ново строителство</p>
-            <div class="mt-6 border-t pt-6">
+            <img src="https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg" alt="Agent Photo" class="w-32 h-32 object-cover object-top rounded-full mx-auto mb-4 border-2" style="border-color: var(--color-accent); object-position: center 25%;">
+            <h2 class="text-2xl font-bold h-themed" data-translate-key="card_agent_name">Цветелина Иванова</h2>
+            <p class="p-themed mt-1" data-translate-key="card_agent_title">консултант недвижими имоти - ново строителство</p>
+            <div class="mt-6 border-t pt-6 border-themed">
                 <div class="mt-4 space-y-2">
-                    <p class="text-gray-700"><strong data-translate-key="card_phone_label">Телефон:</strong> <a href="tel:0894799475" class="text-blue-500 hover:underline">0894799475</a></p>
-                    <p class="text-gray-700"><strong data-translate-key="card_email_label">Имейл:</strong> <a href="mailto:tsvetelina.avramova@icloud.com" class="text-blue-500 hover:underline">tsvetelina.avramova@icloud.com</a></p>
+                    <p class="p-themed"><strong data-translate-key="card_phone_label">Телефон:</strong> <a href="tel:0894799475" class="hover:underline" style="color: var(--color-accent);">0894799475</a></p>
+                    <p class="p-themed"><strong data-translate-key="card_email_label">Имейл:</strong> <a href="mailto:tsvetelina.avramova@icloud.com" class="hover:underline" style="color: var(--color-accent);">tsvetelina.avramova@icloud.com</a></p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accent Color Picker Modal -->
+    <div id="color-picker-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 class="text-2xl font-bold h-themed" data-translate-key="color_picker_title">Choose Your Accent Color</h2>
+             <p class="p-themed mt-2 mb-6" data-translate-key="color_picker_subtitle">This will personalize your experience.</p>
+            <div class="flex justify-center gap-4">
+                <button class="w-12 h-12 rounded-full bg-sky-500" data-color="#0ea5e9" data-hover="#0284c7" data-ring="#7dd3fc"></button>
+                <button class="w-12 h-12 rounded-full bg-emerald-500" data-color="#10b981" data-hover="#059669" data-ring="#6ee7b7"></button>
+                <button class="w-12 h-12 rounded-full bg-amber-500" data-color="#f59e0b" data-hover="#d97706" data-ring="#fcd34d"></button>
+                <button class="w-12 h-12 rounded-full bg-rose-500" data-color="#f43f5e" data-hover="#e11d48" data-ring="#fda4af"></button>
+                <button class="w-12 h-12 rounded-full bg-violet-500" data-color="#8b5cf6" data-hover="#7c3aed" data-ring="#c4b5fd"></button>
             </div>
         </div>
     </div>
@@ -333,6 +435,8 @@
                 card_agent_title: 'Real Estate Consultant - New Construction',
                 card_phone_label: 'Phone:',
                 card_email_label: 'Email:',
+                color_picker_title: 'Choose Your Accent Color',
+                color_picker_subtitle: 'This will personalize your experience.',
             },
             bg: {
                 main_title: 'Запитване за имот',
@@ -393,6 +497,8 @@
                 card_agent_title: 'консултант недвижими имоти - ново строителство',
                 card_phone_label: 'Телефон:',
                 card_email_label: 'Имейл:',
+                color_picker_title: 'Изберете акцентен цвят',
+                color_picker_subtitle: 'Това ще персонализира изживяването Ви.',
             }
         };
 
@@ -486,8 +592,68 @@
             }
         }
 
+        function applyTheme(color, hover, ring) {
+            const root = document.documentElement;
+            root.style.setProperty('--color-accent', color);
+            root.style.setProperty('--color-accent-hover', hover);
+            root.style.setProperty('--color-accent-ring', ring);
+        }
+
+        function saveTheme(color, hover, ring) {
+            localStorage.setItem('theme-accent-color', color);
+            localStorage.setItem('theme-accent-hover', hover);
+            localStorage.setItem('theme-accent-ring', ring);
+        }
+
         // Initialize maps and set initial form state when the page loads
         document.addEventListener('DOMContentLoaded', function() {
+            
+            // 3D Hero Section Logic
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('hero-canvas'), alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+            const material = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.7, roughness: 0.2 });
+            const torusKnot = new THREE.Mesh(geometry, material);
+            scene.add(torusKnot);
+
+            const pointLight = new THREE.PointLight(0xffffff);
+            pointLight.position.set(5, 5, 5);
+            const ambientLight = new THREE.AmbientLight(0xffffff);
+            scene.add(pointLight, ambientLight);
+
+            camera.position.z = 30;
+
+            let mouseX = 0;
+            let mouseY = 0;
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+                torusKnot.rotation.y += 0.005;
+                torusKnot.rotation.x += 0.001;
+                
+                // Mouse interaction
+                torusKnot.rotation.y += mouseX * 0.01;
+                torusKnot.rotation.x += mouseY * 0.01;
+
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+            });
+
+
+            // Form Logic
             toggleFormSections();
             handlePropertyTypeChange();
 
@@ -500,6 +666,32 @@
 
 
             setLanguage('bg');
+
+            // Theme Picker Logic
+            const colorPickerModal = document.getElementById('color-picker-modal');
+            const savedColor = localStorage.getItem('theme-accent-color');
+
+            if (!savedColor) {
+                colorPickerModal.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            } else {
+                const savedHover = localStorage.getItem('theme-accent-hover');
+                const savedRing = localStorage.getItem('theme-accent-ring');
+                applyTheme(savedColor, savedHover, savedRing);
+            }
+
+            document.querySelectorAll('#color-picker-modal button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const color = button.dataset.color;
+                    const hover = button.dataset.hover;
+                    const ring = button.dataset.ring;
+                    applyTheme(color, hover, ring);
+                    saveTheme(color, hover, ring);
+                    colorPickerModal.classList.add('hidden');
+                    document.body.classList.remove('modal-open');
+                });
+            });
+
 
             // Business Card Modal Logic
             const businessCardIcon = document.getElementById('openBusinessCard');
@@ -552,7 +744,7 @@
                         const formContainer = document.getElementById('form-container');
                         const successTitle = translations[currentLang].success_title;
                         const successMessage = translations[currentLang].success_message;
-                        formContainer.innerHTML = `<div class="text-center p-8"><h2 class="text-2xl font-bold text-green-600">${successTitle}</h2><p class="text-gray-600 mt-4">${successMessage}</p></div>`;
+                        formContainer.innerHTML = `<div class="text-center p-8"><h2 class="text-2xl font-bold" style="color: var(--color-accent);">${successTitle}</h2><p class="p-themed mt-4">${successMessage}</p></div>`;
                     } else {
                         response.json().then(data => {
                             console.error("Formspree error:", data);
