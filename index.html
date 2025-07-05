@@ -3,640 +3,580 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калкулатор за оценка на имоти</title>
+    <title>Формуляр за запитване за имот</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- Datepicker CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
+        /* Custom styles to enhance the form */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a; /* Dark Blue (slate-900) */
-            color: #e2e8f0; /* White/Light Blue text (slate-200) */
         }
-        #map {
-            height: 100%;
-            min-height: 350px;
-            border-radius: 0.75rem;
-            cursor: pointer;
-        }
-        .leaflet-control-zoom { display: none; }
-        .form-input {
-            background-color: #1e293b; /* slate-800 */
-            border: 1px solid #334155; /* slate-700 */
-            color: #e2e8f0; /* slate-200 */
+        /* Style for the radio button labels */
+        .user-role-label {
             transition: all 0.2s ease-in-out;
         }
-        .form-input:focus {
-            background-color: #1e293b;
-            border-color: #38bdf8; /* Light Blue (sky-400) */
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        /* Style for when radio button is checked */
+        input[type="radio"]:checked + .user-role-label {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            border-color: #3b82f6; /* blue-500 */
         }
-        .form-input:disabled {
-            background-color: #334155; /* slate-700 */
+        /* Hide the actual radio button */
+        input[type="radio"] {
+            display: none;
+        }
+        /* Language switcher styles */
+        .lang-switcher button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        /* Style for disabled button */
+        button:disabled {
+            opacity: 0.7;
             cursor: not-allowed;
-            opacity: 0.5;
         }
-        .btn-primary {
-            background-color: #0ea5e9; /* sky-500 */
-            color: #ffffff;
-            font-weight: 700;
-            transition: all 0.3s ease-in-out;
-        }
-        .btn-primary:hover {
-            background-color: #38bdf8; /* sky-400 */
-            transform: translateY(-2px);
-        }
-        .btn-secondary {
-             background-color: transparent;
-             border: 2px solid #0ea5e9; /* sky-500 */
-             color: #0ea5e9; /* sky-500 */
-             font-weight: 700;
-             transition: all 0.3s ease-in-out;
-        }
-        .btn-secondary:hover {
-            background-color: #0ea5e9;
-            color: #ffffff;
-            transform: translateY(-2px);
-        }
-        .datepicker-picker {
-            background-color: #1e293b; /* slate-800 */
-            border: 1px solid #334155; /* slate-700 */
-        }
-        .datepicker-header .datepicker-title, .datepicker-header .prev-btn, .datepicker-header .next-btn, .datepicker-view .dow, .datepicker-view .day, .datepicker-view .month, .datepicker-view .year {
-            color: #cbd5e1; /* slate-300 */
-        }
-        .datepicker-header .prev-btn:hover, .datepicker-header .next-btn:hover { background-color: #334155; }
-        .datepicker-cell.selected, .datepicker-cell.selected:hover { background-color: #0ea5e9; color: #fff; }
-        .datepicker-cell:not(.disabled):not(.selected):hover { background-color: #334155; } /* slate-700 */
-        
-        .role-btn.active {
-            background-color: #38bdf8; /* sky-400 */
-            color: #0f172a; /* slate-900 */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .number-stepper button {
-            background-color: #334155; /* slate-700 */
-            color: #cbd5e1; /* slate-300 */
-        }
-        .number-stepper button:hover { background-color: #475569; } /* slate-600 */
-        
-        #businessCardModal.hidden { display: none; }
-        #businessCardModal {
-            transition: opacity 0.3s ease-in-out;
-            z-index: 1000; 
-        }
-        #businessCardModal .modal-content {
-            transition: transform 0.3s ease-in-out;
+        /* Class to prevent body scroll when a modal is open */
+        .modal-open {
+            overflow: hidden;
         }
     </style>
 </head>
-<body class="bg-slate-900">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
 
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div class="max-w-6xl mx-auto bg-slate-800 rounded-2xl shadow-2xl shadow-black/20 overflow-hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-2">
-                <!-- Left Column: Form -->
-                <div class="p-8 sm:p-10">
-                    <div class="flex items-start justify-between mb-8">
-                        <div>
-                            <h1 class="text-3xl sm:text-4xl font-extrabold text-white">Оценете своя имот</h1>
-                            <p class="text-slate-300 mt-2">Получете мигновена, базирана на данни, оценка на вашия имот.</p>
-                        </div>
-                        <div class="text-center flex-shrink-0">
-                            <!-- UPDATED: Image URL -->
-                            <button id="openBusinessCard" class="w-14 h-14 rounded-full bg-cover bg-center border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-800" style="background-image: url('https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg')" aria-label="Open Business Card"></button>
-                            <p class="text-xs text-slate-400 mt-1">Контакти</p>
-                        </div>
+    <div id="form-container" class="w-full max-w-3xl bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 relative">
+        
+        <!-- Business Card Icon -->
+        <div class="absolute top-6 left-6">
+            <button id="openBusinessCard" class="w-16 h-16 rounded-full bg-cover border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-100" style="background-image: url('https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg'); background-position: center 25%;" aria-label="Open Business Card"></button>
+        </div>
+
+        <!-- Language Switcher -->
+        <div class="lang-switcher flex justify-end mb-4">
+            <div class="inline-flex rounded-md shadow-sm" role="group">
+                <button type="button" id="lang-bg" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-500">
+                    BG
+                </button>
+                <button type="button" id="lang-en" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-r border-gray-200 rounded-r-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-500">
+                    EN
+                </button>
+            </div>
+        </div>
+
+        <div class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800" data-translate-key="main_title">Запитване за имот</h1>
+            <p class="text-gray-500 mt-2" data-translate-key="main_subtitle">Моля, попълнете формуляра по-долу и ние ще се свържем с вас скоро.</p>
+        </div>
+
+        <!-- The form now points to your specific Formspree endpoint -->
+        <form id="real-estate-inquiry-form" action="https://formspree.io/f/mjkrdyrp" method="POST">
+
+            <!-- Step 1: User Role Selection -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4" data-translate-key="user_role_title">Вие сте...</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <input type="radio" id="role-buyer" name="user_role" value="Buyer" checked onchange="toggleFormSections()">
+                        <label for="role-buyer" class="user-role-label flex items-center justify-center w-full p-4 border border-gray-300 rounded-lg cursor-pointer text-lg font-medium text-gray-700" data-translate-key="role_buyer">
+                            Купувач
+                        </label>
                     </div>
-
-                    <div class="space-y-6">
-                        <!-- Buyer/Seller Toggle -->
-                        <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-2">Вие сте:</label>
-                            <div class="flex w-full gap-2 bg-slate-700/50 p-1 rounded-lg">
-                                <button id="sellerBtn" type="button" class="role-btn text-slate-300 flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-colors duration-200">Продавач</button>
-                                <button id="buyerBtn" type="button" class="role-btn text-slate-300 flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-colors duration-200">Купувач</button>
-                            </div>
-                            <input type="hidden" id="userRole" name="userRole" value="Seller">
-                        </div>
-
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <label for="address" class="block text-sm font-medium text-slate-300">Адрес на имота</label>
-                                <div class="relative" id="tooltip-container">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 cursor-pointer hover:text-sky-400 transition-colors"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                    <div id="tooltip" class="absolute bottom-full mb-2 w-max max-w-xs p-2 text-sm bg-slate-600 text-white rounded-md shadow-lg hidden z-10 -translate-x-1/2 left-1/2">
-                                        Можете също да кликнете върху картата.
-                                    </div>
-                                </div>
-                            </div>
-                            <input type="text" id="address" name="address" class="w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="напр., бул. Витоша 1, София">
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label for="area" class="block text-sm font-medium text-slate-300 mb-1">Квадратура (кв. м)</label>
-                                <input type="number" id="area" name="area" class="w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="120">
-                            </div>
-                            <div class="relative">
-                                <label for="propertyType" class="block text-sm font-medium text-slate-300 mb-1">Тип на имота</label>
-                                <select id="propertyType" name="propertyType" class="w-full form-input px-4 py-2.5 rounded-lg appearance-none">
-                                    <option value="Apartment">Апартамент</option>
-                                    <option value="House">Къща</option>
-                                    <option value="Plot">Парцел</option>
-                                    <option value="Other">Друго</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400 mt-6">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Conditional Fields Container -->
-                        <div class="space-y-5 transition-all duration-300">
-                            <div id="bedroomsWrapper">
-                                <label for="bedrooms" class="block text-sm font-medium text-slate-300 mb-1">Спални</label>
-                                <input type="number" id="bedrooms" name="bedrooms" class="w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="3">
-                            </div>
-                            <div id="otherTypeWrapper" class="hidden">
-                                <label for="otherTypeSelect" class="block text-sm font-medium text-slate-300 mb-1">Уточнен тип</label>
-                                <div class="relative">
-                                    <select id="otherTypeSelect" name="otherTypeSelect" class="w-full form-input px-4 py-2.5 rounded-lg appearance-none">
-                                        <option value="ResidentialBuilding">Жилищна сграда</option>
-                                        <option value="Office">Офис</option>
-                                        <option value="BusinessBuilding">Бизнес сграда</option>
-                                        <option value="VacationProperty">Ваканционен имот</option>
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="parkingDetailsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                <div>
-                                    <label for="garage" class="block text-sm font-medium text-slate-300 mb-1">Гараж</label>
-                                    <div class="flex items-center gap-2 number-stepper">
-                                        <button type="button" data-action="decrement" data-target="garage">-</button>
-                                        <input type="number" id="garage" name="garage" class="w-full form-input" value="0" readonly>
-                                        <button type="button" data-action="increment" data-target="garage">+</button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label for="parkingSpot" class="block text-sm font-medium text-slate-300 mb-1">Паркомясто</label>
-                                    <div class="flex items-center gap-2 number-stepper">
-                                        <button type="button" data-action="decrement" data-target="parkingSpot">-</button>
-                                        <input type="number" id="parkingSpot" name="parkingSpot" class="w-full form-input" value="0" readonly>
-                                        <button type="button" data-action="increment" data-target="parkingSpot">+</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="yearWrapper">
-                                <label for="year" class="block text-sm font-medium text-slate-300 mb-1">Година на строеж</label>
-                                <input type="text" id="year" name="year" class="w-full form-input px-4 py-2.5 rounded-lg cursor-pointer placeholder:text-slate-400" placeholder="Изберете година">
-                            </div>
-                        </div>
-                        <button id="calculateBtn" class="w-full btn-primary text-white font-bold py-3 px-6 rounded-lg">
-                            Изчисли оценка
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Right Column: Map and Result -->
-                <div class="bg-slate-900/50 p-4 flex flex-col gap-4">
-                    <div id="map" class="flex-grow"></div>
-                    <div id="result" class="hidden p-6 bg-slate-800 rounded-xl text-center border border-slate-700">
-                         <p class="text-slate-300 mb-2">Очаквана пазарна стойност:</p>
-                        <p id="valuation" class="text-5xl font-extrabold text-sky-400"></p>
-                        <p id="valuation-range" class="text-sm text-slate-300 mt-1"></p>
-                        <div class="mt-4 pt-4 border-t border-slate-700">
-                            <p class="text-xs text-slate-500 italic">
-                                <span class="font-bold text-amber-500">!</span> Внимание: Посочените цени са индикативни и подлежат на по-задълбочено проучване. Те не представляват окончателна оферта.
-                            </p>
-                        </div>
-                    </div>
-                     <div id="error-message" class="hidden p-4 bg-red-500/20 rounded-lg text-center text-red-400 font-medium border border-red-500/30">
+                    <div>
+                        <input type="radio" id="role-seller" name="user_role" value="Seller" onchange="toggleFormSections()">
+                        <label for="role-seller" class="user-role-label flex items-center justify-center w-full p-4 border border-gray-300 rounded-lg cursor-pointer text-lg font-medium text-gray-700" data-translate-key="role_seller">
+                            Продавач
+                        </label>
                     </div>
                 </div>
             </div>
             
-            <!-- Contact Form Section -->
-            <div class="border-t border-slate-700 bg-slate-800">
-                <div class="max-w-3xl mx-auto p-8 sm:p-10">
-                    <h2 class="text-2xl font-bold text-white mb-4 text-center">Имате нужда от консултация?</h2>
-                    <p class="text-slate-300 mb-6 text-center">Попълнете формата по-долу и наш експерт ще се свърже с Вас за допълнителна информация и съдействие.</p>
-                    <form id="contactForm" action="https://formspree.io/f/mnnvwyqr" method="POST" class="mx-auto space-y-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="contactName" class="block text-sm font-medium text-slate-300">Вашето име</label>
-                                <input type="text" id="contactName" name="name" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Иван Иванов">
-                            </div>
-                            <div>
-                                <label for="contactPhone" class="block text-sm font-medium text-slate-300">Телефонен номер</label>
-                                <input type="tel" id="contactPhone" name="phone" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="088 123 4567">
-                            </div>
-                        </div>
-                        <div>
-                            <label for="contactEmail" class="block text-sm font-medium text-slate-300">Имейл адрес <span class="text-slate-400">(опционално)</span></label>
-                            <input type="email" id="contactEmail" name="email" class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="vasia-email@example.com">
-                        </div>
-                        <div>
-                            <label for="contactMessage" class="block text-sm font-medium text-slate-300">Коментар или запитване</label>
-                            <textarea id="contactMessage" name="message" rows="4" required class="mt-1 w-full form-input px-4 py-2.5 rounded-lg placeholder:text-slate-400" placeholder="Бих искал/а повече информация относно..."></textarea>
-                        </div>
-                        <div class="flex items-center">
-                            <input id="sell-checkbox" name="selling_in_3_to_6_months" type="checkbox" value="Yes" class="h-4 w-4 rounded border-slate-500 bg-slate-700 text-sky-500 focus:ring-sky-500 focus:ring-offset-slate-800">
-                            <label for="sell-checkbox" class="ml-3 block text-sm text-slate-300">Бих искал/а да продам имота си в следващите 3-6 месеца</label>
-                        </div>
-                        <!-- Hidden fields for extra data -->
-                        <input type="hidden" id="formUserRole" name="role">
-                        <input type="hidden" id="formAddress" name="property_address">
-                        <input type="hidden" id="formValuation" name="estimated_valuation">
-                        <div>
-                            <button type="submit" id="sendFeedbackBtn" class="w-full btn-secondary font-bold py-3 px-6 rounded-lg">
-                                Изпрати запитване
-                            </button>
-                        </div>
-                    </form>
+            <!-- Step 2: Common Property Details -->
+            <div class="mt-8">
+                <h3 class="text-xl font-semibold text-gray-700 mb-6 border-b pb-2" data-translate-key="property_details_title">Детайли за имота</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <!-- Property Type -->
+                    <div class="md:col-span-2">
+                        <label for="property-type" id="property-type-label" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="property_type_label_buyer">Какъв имот търсите?</label>
+                        <select name="property_type" id="property-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            <option data-translate-key="property_type_house">Къща</option>
+                            <option data-translate-key="property_type_flat" selected>Апартамент</option>
+                            <option data-translate-key="property_type_parcel">Парцел</option>
+                            <option data-translate-key="property_type_business_building">Бизнес сграда</option>
+                            <option data-translate-key="property_type_living_building">Жилищна сграда</option>
+                            <option data-translate-key="property_type_vacational_property">Ваканционен имот</option>
+                        </select>
+                    </div>
+                    <!-- Square Meters -->
+                    <div>
+                        <label for="sqm" id="sqm-label" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="sqm_label_buyer">Желана квадратура (м²)</label>
+                        <input type="text" name="sqm" id="sqm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="sqm_placeholder" placeholder="напр. 120-150">
+                    </div>
+                    <!-- Bedrooms -->
+                    <div id="bedrooms-container">
+                        <label for="bedrooms" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="bedrooms_label">Брой спални</label>
+                        <input type="number" name="bedrooms" id="bedrooms" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="bedrooms_placeholder" placeholder="напр. 3">
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Step 3: Buyer-Specific Details -->
+            <div id="buyer-section">
+                <h3 class="text-xl font-semibold text-gray-700 mb-6 border-b pb-2 mt-8" data-translate-key="buyer_info_title">Информация за купувача</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Budget -->
+                    <div id="budget-container">
+                        <label for="budget-text" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="budget_label_buyer">Какъв е Вашият бюджет?</label>
+                        <input type="text" name="budget" id="budget-text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="budget_placeholder" placeholder="напр. 125000">
+                    </div>
+                    <!-- Area of Living -->
+                    <div>
+                        <label for="area" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="area_label">Предпочитан(и) район(и)</label>
+                        <input type="text" name="area" id="area" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="area_placeholder" placeholder="напр. Център, Северни квартали">
+                    </div>
+                     <!-- Parking/Garage Options -->
+                    <div id="parking-container" class="md:col-span-2">
+                         <label class="block text-sm font-medium text-gray-600 mb-2" data-translate-key="parking_needs_label">Нужди за паркиране</label>
+                         <div class="flex items-center space-x-6">
+                            <div class="flex items-center">
+                                <input id="buyer-garage" name="buyer_needs_garage" type="checkbox" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="buyer-garage" class="ml-2 block text-sm text-gray-900" data-translate-key="garage_label">Гараж</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="buyer-parking" name="buyer_needs_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="buyer-parking" class="ml-2 block text-sm text-gray-900" data-translate-key="parking_spot_label">Паркомясто</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="seller-section" class="hidden">
+                 <h3 class="text-xl font-semibold text-gray-700 mb-6 border-b pb-2 mt-8" data-translate-key="seller_info_title">Информация за продавача</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Year of Building -->
+                    <div id="year-built-container">
+                        <label for="year-built" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="year_built_label">Година на строеж</label>
+                        <input type="number" name="year_built" id="year-built" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="year_built_placeholder" placeholder="напр. 1995">
+                    </div>
+                    <!-- Type of Building -->
+                    <div id="building-type-container">
+                        <label for="building-type" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="building_type_label">Тип на сградата</label>
+                        <select name="building_type" id="building-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            <option data-translate-key="building_type_tuhla">Тухла</option>
+                            <option data-translate-key="building_type_epk">ЕПК</option>
+                            <option data-translate-key="building_type_panel">Панел</option>
+                        </select>
+                    </div>
+                    <!-- Parking/Garage Options -->
+                    <div id="seller-parking-container" class="md:col-span-2">
+                         <label class="block text-sm font-medium text-gray-600 mb-2" data-translate-key="property_features_label">Характеристики на имота</label>
+                         <div class="flex items-center space-x-6">
+                            <div class="flex items-center">
+                                <input id="seller-garage" name="property_has_garage" type="checkbox" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="seller-garage" class="ml-2 block text-sm text-gray-900" data-translate-key="garage_label_seller">Гараж</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="seller-parking" name="property_has_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="seller-parking" class="ml-2 block text-sm text-gray-900" data-translate-key="parking_spot_label_seller">Паркомясто</label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sell within 6 months -->
+                    <div class="md:col-span-2">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="sell-within-6-months" name="sell_within_6_months" type="checkbox" value="Yes" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="sell-within-6-months" class="font-medium text-gray-700" data-translate-key="sell_within_6_months_label">Искам да продам в рамките на следващите 6 месеца</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Common Contact Information -->
+            <div class="mt-8 pt-6 border-t">
+                 <h3 class="text-xl font-semibold text-gray-700 mb-6" data-translate-key="contact_details_title">Данни за контакт</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Name -->
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="full_name_label">Вашите имена</label>
+                        <input type="text" name="name" id="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="full_name_placeholder" placeholder="Иван Иванов">
+                    </div>
+                    <!-- Phone -->
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="phone_label">Телефонен номер</label>
+                        <input type="tel" name="phone" id="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="phone_placeholder" placeholder="+359 88 123 4567">
+                    </div>
+                    <!-- Email -->
+                    <div class="md:col-span-2">
+                        <label for="email" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="email_label">Имейл адрес</label>
+                        <input type="email" name="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="email_placeholder" placeholder="vasia@primer.com">
+                    </div>
+                    <!-- Additional Information -->
+                    <div class="md:col-span-2">
+                        <label for="message" class="block text-sm font-medium text-gray-600 mb-1" data-translate-key="additional_info_label">Допълнителна информация</label>
+                        <textarea name="message" id="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" data-translate-key="additional_info_placeholder" placeholder="Има ли нещо друго, което бихте искали да споделите?"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submission Button -->
+            <div class="mt-8 text-center">
+                <button type="submit" id="submit-button" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-12 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300" data-translate-key="submit_button">
+                    Изпрати запитване
+                </button>
+            </div>
+        </form>
     </div>
     
-    <div id="notification" class="fixed bottom-5 right-5 bg-sky-500 text-slate-900 font-bold py-3 px-5 rounded-lg shadow-lg transition-transform duration-300 translate-x-[120%] z-50">
-      Съобщението е изпратено!
-    </div>
-     <div id="errorNotification" class="fixed bottom-5 right-5 bg-red-500 text-white font-bold py-3 px-5 rounded-lg shadow-lg transition-transform duration-300 translate-x-[120%] z-50">
-      Възникна грешка.
-    </div>
-
-    <!-- Business Card Modal HTML -->
-    <div id="businessCardModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="modal-content bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center relative transform scale-95">
-            <button id="closeBusinessCard" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors" aria-label="Close Business Card">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-            <div class="mb-4">
-                <!-- UPDATED: Image URL -->
-                <img src="https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg" alt="Снимка на агент" class="w-28 h-28 rounded-full mx-auto border-4 border-slate-700 object-cover">
-            </div>
-            <h3 class="text-2xl font-bold text-white">Цветелина Иванова</h3>
-            <p class="text-sky-400 font-semibold mb-6">Специалист недвижими имоти - ново стройтелство</p>
-            <div class="space-y-4 text-left">
-                <a href="tel:+359894799475" class="flex items-center gap-3 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-sky-400 transition-colors"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                    <span class="text-slate-300 group-hover:text-white transition-colors">+359894799475</span>
-                </a>
-                <a href="#" id="contactAgentEmail" class="flex items-center gap-3 group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 group-hover:text-sky-400 transition-colors"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                    <span class="text-slate-300 group-hover:text-white transition-colors">tsvetelina.avramova@icloud.com</span>
-                </a>
+    <!-- Error Modal -->
+    <div id="error-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" data-translate-key="error_modal_title">Грешка при изпращане</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p id="error-message" class="text-sm text-gray-500" data-translate-key="error_modal_message">Възникна проблем при изпращането на формуляра. Моля, опитайте отново.</p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="close-error-modal-btn" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300" data-translate-key="error_modal_close">
+                        Затвори
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Datepicker JS -->
-    <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
+    <!-- Business Card Modal -->
+    <div id="business-card-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="relative bg-white p-8 rounded-lg shadow-lg max-w-sm w-full text-center">
+            <span id="close-business-card-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-3xl cursor-pointer font-bold">&times;</span>
+            <img src="https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg" alt="Agent Photo" class="w-32 h-32 object-cover object-top rounded-full mx-auto mb-4 border-2 border-blue-500" style="object-position: center 25%;">
+            <h2 class="text-2xl font-bold text-gray-800" data-translate-key="card_agent_name">Цветелина Иванова</h2>
+            <p class="text-gray-600 mt-1" data-translate-key="card_agent_title">консултант недвижими имоти - ново строителство</p>
+            <div class="mt-6 border-t pt-6">
+                <div class="mt-4 space-y-2">
+                    <p class="text-gray-700"><strong data-translate-key="card_phone_label">Телефон:</strong> <a href="tel:0894799475" class="text-blue-500 hover:underline">0894799475</a></p>
+                    <p class="text-gray-700"><strong data-translate-key="card_email_label">Имейл:</strong> <a href="mailto:tsvetelina.avramova@icloud.com" class="text-blue-500 hover:underline">tsvetelina.avramova@icloud.com</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
-        // --- Year Picker Initialization ---
-        const yearpickerEl = document.getElementById('year');
-        let datepicker = new Datepicker(yearpickerEl, {
-            buttonClass: 'btn',
-            format: 'yyyy',
-            pickLevel: 2,
-            autohide: true,
-            maxDate: new Date().getFullYear().toString()
-        }); 
+        let currentLang = 'bg'; // To keep track of the current language
 
-        // --- Role Selection Logic ---
-        const sellerBtn = document.getElementById('sellerBtn');
-        const buyerBtn = document.getElementById('buyerBtn');
-        const userRoleInput = document.getElementById('userRole');
-
-        function setActiveRole(role) {
-            if (role === 'Seller') {
-                sellerBtn.classList.add('active');
-                buyerBtn.classList.remove('active');
-                userRoleInput.value = 'Seller';
-            } else { // Buyer
-                buyerBtn.classList.add('active');
-                sellerBtn.classList.remove('active');
-                userRoleInput.value = 'Buyer';
+        // Translations object
+        const translations = {
+            en: {
+                main_title: 'Real Estate Inquiry',
+                main_subtitle: 'Please fill out the form below and we will get back to you shortly.',
+                user_role_title: 'Are you a...',
+                role_buyer: 'Buyer',
+                role_seller: 'Seller',
+                property_details_title: 'Property Details',
+                sqm_label_buyer: 'Desired Square Meters (m²)',
+                sqm_label_seller: 'Square Meters (m²)',
+                sqm_placeholder: 'e.g., 120-150',
+                bedrooms_label: 'Number of Bedrooms',
+                bedrooms_placeholder: 'e.g., 3',
+                buyer_info_title: "Buyer's Information",
+                budget_label_buyer: 'What is your budget?',
+                budget_placeholder: 'e.g., 125000',
+                area_label: 'Preferred Area(s)',
+                area_placeholder: 'e.g., Downtown, North Suburbs',
+                property_type_label_buyer: 'What property are you looking for?',
+                property_type_label_seller: 'What property are you selling?',
+                property_type_house: 'House',
+                property_type_flat: 'Apartment / Flat',
+                property_type_parcel: 'Parcel',
+                property_type_business_building: 'Business Building',
+                property_type_living_building: 'Living Building',
+                property_type_vacational_property: 'Vacational Property',
+                parking_needs_label: 'Parking Needs',
+                garage_label: 'Garage',
+                parking_spot_label: 'Parking Spot',
+                seller_info_title: "Seller's Information",
+                year_built_label: 'Year of Building',
+                year_built_placeholder: 'e.g., 1995',
+                building_type_label: 'Type of Building',
+                building_type_tuhla: 'Brick',
+                building_type_epk: 'EPK',
+                building_type_panel: 'Panel',
+                property_features_label: 'Property Features',
+                garage_label_seller: 'Garage',
+                parking_spot_label_seller: 'Parking Spot',
+                sell_within_6_months_label: 'I want to sell within the next 6 months',
+                contact_details_title: 'Contact Details',
+                full_name_label: 'Your Names',
+                full_name_placeholder: 'John Doe',
+                phone_label: 'Phone Number',
+                phone_placeholder: '+1 (555) 123-4567',
+                email_label: 'Email Address',
+                email_placeholder: 'you@example.com',
+                additional_info_label: 'Additional Information',
+                additional_info_placeholder: "Is there anything else you'd like to share?",
+                submit_button: 'Submit Inquiry',
+                submit_button_sending: 'Sending...',
+                success_title: 'Thank You!',
+                success_message: 'Your inquiry has been submitted successfully. We will contact you shortly.',
+                error_modal_title: 'Submission Error',
+                error_modal_message: 'There was a problem submitting your form. Please try again.',
+                error_modal_close: 'Close',
+                card_agent_name: 'Tsvetelina Ivanova',
+                card_agent_title: 'Real Estate Consultant - New Construction',
+                card_phone_label: 'Phone:',
+                card_email_label: 'Email:',
+            },
+            bg: {
+                main_title: 'Запитване за имот',
+                main_subtitle: 'Моля, попълнете формуляра по-долу и ние ще се свържем с вас скоро.',
+                user_role_title: 'Вие сте...',
+                role_buyer: 'Купувач',
+                role_seller: 'Продавач',
+                property_details_title: 'Детайли за имота',
+                sqm_label_buyer: 'Желана квадратура (м²)',
+                sqm_label_seller: 'Квадратура (м²)',
+                sqm_placeholder: 'напр. 120-150',
+                bedrooms_label: 'Брой спални',
+                bedrooms_placeholder: 'напр. 3',
+                buyer_info_title: 'Информация за купувача',
+                budget_label_buyer: 'Какъв е Вашият бюджет?',
+                budget_placeholder: 'напр. 125000',
+                area_label: 'Предпочитан(и) район(и)',
+                area_placeholder: 'напр. Център, Северни квартали',
+                property_type_label_buyer: 'Какъв имот търсите?',
+                property_type_label_seller: 'Какъв имот продавате?',
+                property_type_house: 'Къща',
+                property_type_flat: 'Апартамент',
+                property_type_parcel: 'Парцел',
+                property_type_business_building: 'Бизнес сграда',
+                property_type_living_building: 'Жилищна сграда',
+                property_type_vacational_property: 'Ваканционен имот',
+                parking_needs_label: 'Нужди за паркиране',
+                garage_label: 'Гараж',
+                parking_spot_label: 'Паркомясто',
+                seller_info_title: 'Информация за продавача',
+                year_built_label: 'Година на строеж',
+                year_built_placeholder: 'напр. 1995',
+                building_type_label: 'Тип на сградата',
+                building_type_tuhla: 'Тухла',
+                building_type_epk: 'ЕПК',
+                building_type_panel: 'Панел',
+                property_features_label: 'Характеристики на имота',
+                garage_label_seller: 'Гараж',
+                parking_spot_label_seller: 'Паркомясто',
+                sell_within_6_months_label: 'Искам да продам в рамките на следващите 6 месеца',
+                contact_details_title: 'Данни за контакт',
+                full_name_label: 'Вашите имена',
+                full_name_placeholder: 'Иван Иванов',
+                phone_label: 'Телефонен номер',
+                phone_placeholder: '+359 88 123 4567',
+                email_label: 'Имейл адрес',
+                email_placeholder: 'vasia@primer.com',
+                additional_info_label: 'Допълнителна информация',
+                additional_info_placeholder: 'Има ли нещо друго, което бихте искали да споделите?',
+                submit_button: 'Изпрати запитване',
+                submit_button_sending: 'Изпращане...',
+                success_title: 'Благодарим Ви!',
+                success_message: 'Вашето запитване беше изпратено успешно. Ще се свържем с Вас скоро.',
+                error_modal_title: 'Грешка при изпращане',
+                error_modal_message: 'Възникна проблем при изпращането на формуляра. Моля, опитайте отново.',
+                error_modal_close: 'Затвори',
+                card_agent_name: 'Цветелина Иванова',
+                card_agent_title: 'консултант недвижими имоти - ново строителство',
+                card_phone_label: 'Телефон:',
+                card_email_label: 'Имейл:',
             }
-        }
-        setActiveRole('Seller');
-        sellerBtn.addEventListener('click', () => setActiveRole('Seller'));
-        buyerBtn.addEventListener('click', () => setActiveRole('Buyer'));
+        };
 
-
-        // --- Map Initialization ---
-        const map = L.map('map', {
-            center: [42.6977, 23.3219],
-            zoom: 13,
-            zoomControl: false 
-        });
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-        
-        setTimeout(() => { map.invalidateSize(); }, 0);
-
-
-        let marker;
-        const addressInput = document.getElementById('address');
-        const calculateBtn = document.getElementById('calculateBtn');
-        const resultDiv = document.getElementById('result');
-        const valuationEl = document.getElementById('valuation');
-        const valuationRangeEl = document.getElementById('valuation-range');
-        const errorMessageEl = document.getElementById('error-message');
-        
-        // --- Handle Property Type Change ---
-        const propertyTypeSelect = document.getElementById('propertyType');
-        const bedroomsWrapper = document.getElementById('bedroomsWrapper');
-        const parkingDetailsContainer = document.getElementById('parkingDetailsContainer');
-        const yearWrapper = document.getElementById('yearWrapper');
-        const otherTypeWrapper = document.getElementById('otherTypeWrapper');
-
-        function toggleFields() {
-            const type = propertyTypeSelect.value;
-            const show = (el) => el.classList.remove('hidden');
-            const hide = (el) => el.classList.add('hidden');
-
-            hide(bedroomsWrapper);
-            hide(parkingDetailsContainer);
-            hide(yearWrapper);
-            hide(otherTypeWrapper);
-
-            if (type === 'Apartment' || type === 'House') {
-                show(bedroomsWrapper);
-                show(parkingDetailsContainer);
-                show(yearWrapper);
-            } else if (type === 'Plot') {
-                // All are hidden
-            } else if (type === 'Other') {
-                show(otherTypeWrapper);
-                show(yearWrapper);
-            }
-        }
-        propertyTypeSelect.addEventListener('change', toggleFields);
-        toggleFields();
-
-        // --- Number Stepper Logic ---
-        document.querySelectorAll('.number-stepper').forEach(stepper => {
-            const input = stepper.querySelector('input');
-            stepper.addEventListener('click', (e) => {
-                if (e.target.matches('button')) {
-                    const action = e.target.dataset.action;
-                    let currentValue = parseInt(input.value, 10);
-                    if (action === 'increment') {
-                        currentValue++;
-                    } else if (action === 'decrement' && currentValue > 0) {
-                        currentValue--;
+        /**
+         * Switches the form's language.
+         * @param {string} lang - The language code ('en' or 'bg').
+         */
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            document.title = lang === 'bg' ? 'Формуляр за запитване за имот' : 'Real Estate Inquiry Form';
+            
+            const elements = document.querySelectorAll('[data-translate-key]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-translate-key');
+                const translation = translations[lang][key];
+                if (translation !== undefined) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = translation;
+                    } else {
+                        el.innerHTML = translation;
                     }
-                    input.value = currentValue;
                 }
             });
-        });
-
-        // --- Calculation Logic ---
-        function calculateValuation() {
-            resultDiv.classList.add('hidden');
-            errorMessageEl.classList.add('hidden');
-            errorMessageEl.textContent = '';
-
-            const area = parseFloat(document.getElementById('area').value);
-            const bedrooms = parseInt(document.getElementById('bedrooms').value);
-            const garage = parseInt(document.getElementById('garage').value);
-            const parkingSpot = parseInt(document.getElementById('parkingSpot').value);
-            const propertyType = document.getElementById('propertyType').value;
-            const otherType = document.getElementById('otherTypeSelect').value;
-            const year = parseInt(document.getElementById('year').value);
-            const addressVal = document.getElementById('address').value;
-
-            let errorParts = [];
-            if (isNaN(area) || area <= 0) errorParts.push("валидна квадратура");
             
-            if (propertyType === 'Apartment' || propertyType === 'House') {
-                if (isNaN(bedrooms) || bedrooms < 0) errorParts.push("валиден брой спални");
-                if (isNaN(year) || year < 1800 || year > new Date().getFullYear()) errorParts.push("валидна година на строеж");
-            } else if (propertyType === 'Other') {
-                 if (isNaN(year) || year < 1800 || year > new Date().getFullYear()) errorParts.push("валидна година на строеж");
-            }
-
-            if (!addressVal) errorParts.push("адрес");
-
-            if (errorParts.length > 0) {
-                errorMessageEl.textContent = `Моля, въведете ${errorParts.join(', ')}.`;
-                errorMessageEl.classList.remove('hidden');
-                return false;
-            }
-
-            let basePricePerSqM = 1800; 
-            let typeMultiplier = 1.0;
+            // Update active state on buttons
+            document.getElementById('lang-bg').classList.toggle('active', lang === 'bg');
+            document.getElementById('lang-en').classList.toggle('active', lang === 'en');
             
-            if (propertyType === 'Apartment' || propertyType === 'House') {
-                if (area >= 50 && area <= 75) {
-                    basePricePerSqM = 2700;
-                } else if (area > 90) {
-                    basePricePerSqM = 2300;
-                }
-                if (propertyType === 'House') {
-                    typeMultiplier = 1.2;
-                }
-            } else if (propertyType === 'Plot') {
-                typeMultiplier = 0.5;
-            } else if (propertyType === 'Other') {
-                switch(otherType) {
-                    case 'ResidentialBuilding': typeMultiplier = 1.5; break;
-                    case 'Office': typeMultiplier = 1.3; break;
-                    case 'BusinessBuilding': typeMultiplier = 1.8; break;
-                    case 'VacationProperty': typeMultiplier = 1.1; break;
-                }
-            }
-
-            let bedroomBonus = 0;
-            let garageBonus = 0;
-            let parkingSpotBonus = 0;
-            let ageFactor = 1.0;
-
-            if (propertyType === 'Apartment' || propertyType === 'House') {
-                bedroomBonus = (bedrooms || 0) * 10000;
-                garageBonus = (garage || 0) * 15000;
-                parkingSpotBonus = (parkingSpot || 0) * 5000;
-            } 
-            
-            if (propertyType !== 'Plot') {
-                 const currentYear = new Date().getFullYear();
-                 const age = currentYear - year;
-                 if (age > 50) { ageFactor = 0.8; } else if (age < 5) { ageFactor = 1.1; }
-            }
-            
-            const estimatedValue = (area * basePricePerSqM * typeMultiplier * ageFactor) + bedroomBonus + garageBonus + parkingSpotBonus;
-            const randomFactor = 1 + (Math.random() - 0.5) * 0.1;
-            const finalValue = Math.round(estimatedValue * randomFactor);
-            const lowerBound = Math.round(finalValue * 0.95);
-            const upperBound = Math.round(finalValue * 1.05);
-
-            valuationEl.textContent = `€${finalValue.toLocaleString('de-DE')}`;
-            valuationRangeEl.textContent = `(В диапазон: €${lowerBound.toLocaleString('de-DE')} - €${upperBound.toLocaleString('de-DE')})`;
-            resultDiv.classList.remove('hidden');
-            return true;
+            // Re-run toggleFormSections to update dynamic labels
+            toggleFormSections();
+            handlePropertyTypeChange();
         }
-        
-        // --- Button Event Listener ---
-        calculateBtn.addEventListener('click', calculateValuation);
 
-        // --- Reverse Geocoding on Map Click ---
-        map.on('click', async function(e) {
-            const { lat, lng } = e.latlng;
-            if (marker) {
-                marker.setLatLng(e.latlng);
+        /**
+         * Toggles the visibility of the buyer and seller form sections.
+         */
+        function toggleFormSections() {
+            const buyerSection = document.getElementById('buyer-section');
+            const sellerSection = document.getElementById('seller-section');
+            const sqmLabel = document.getElementById('sqm-label');
+            const propertyTypeLabel = document.getElementById('property-type-label');
+            
+            if (document.getElementById('role-buyer').checked) {
+                buyerSection.classList.remove('hidden');
+                sellerSection.classList.add('hidden');
+                sqmLabel.innerHTML = translations[currentLang].sqm_label_buyer;
+                propertyTypeLabel.innerHTML = translations[currentLang].property_type_label_buyer;
             } else {
-                marker = L.marker(e.latlng).addTo(map);
+                buyerSection.classList.add('hidden');
+                sellerSection.classList.remove('hidden');
+                sqmLabel.innerHTML = translations[currentLang].sqm_label_seller;
+                propertyTypeLabel.innerHTML = translations[currentLang].property_type_label_seller;
             }
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=bg`);
-                const data = await response.json();
-                if (data && data.display_name) {
-                    const address = data.display_name;
-                    addressInput.value = address;
-                    marker.bindPopup(`<b>Избрано местоположение:</b><br>${address}`).openPopup();
-                } else {
-                    addressInput.value = '';
-                    marker.bindPopup(`<b>Местоположение:</b><br>Адресът не е намерен.`).openPopup();
-                }
-            } catch (error) {
-                console.error('Error during reverse geocoding:', error);
-                marker.bindPopup(`<b>Местоположение:</b><br>Не може да се зареди адрес.`).openPopup();
-            }
-
-            const area = parseFloat(document.getElementById('area').value);
-            if (!isNaN(area) && area > 0) {
-                calculateValuation();
-            }
-        });
-
-        // --- Geocoding on Address Input ---
-        addressInput.addEventListener('change', async () => {
-            const address = addressInput.value;
-            if (address.length < 3) return;
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=bg&accept-language=bg`);
-            const data = await response.json();
-            if (data && data.length > 0) {
-                const { lat, lon } = data[0];
-                const newLatLng = new L.LatLng(lat, lon);
-                map.setView(newLatLng, 15);
-                if (marker) {
-                    marker.setLatLng(newLatLng);
-                } else {
-                    marker = L.marker(newLatLng).addTo(map);
-                }
-                 marker.bindPopup(`<b>Местоположение:</b><br>${data[0].display_name}`).openPopup();
-            }
-        });
-        
-        // --- Contact Form Logic with Formspree ---
-        const contactForm = document.getElementById('contactForm');
-        contactForm.addEventListener('submit', async function(event) {
-            event.preventDefault();
-
-            const form = event.target;
-            const formData = new FormData(form);
-
-            document.getElementById('formUserRole').value = document.getElementById('userRole').value === 'Seller' ? 'Продавач' : 'Купувач';
-            document.getElementById('formAddress').value = document.getElementById('address').value || 'Няма въведен';
-            document.getElementById('formValuation').value = document.getElementById('valuation').textContent || 'Няма изчислена';
-            
-            const notification = document.getElementById('notification');
-            const errorNotification = document.getElementById('errorNotification');
-            const submitButton = document.getElementById('sendFeedbackBtn');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Изпращане...';
-
-            try {
-                const response = await fetch(form.action, {
-                    method: form.method,
-                    body: new FormData(form),
-                    headers: { 'Accept': 'application/json' }
-                });
-
-                if (response.ok) {
-                    notification.classList.remove('translate-x-[120%]');
-                    setTimeout(() => { notification.classList.add('translate-x-[120%]'); }, 3000);
-                    form.reset();
-                    setActiveRole('Seller');
-                } else {
-                    throw new Error('Network response was not ok.');
-                }
-            } catch (error) {
-                errorNotification.classList.remove('translate-x-[120%]');
-                setTimeout(() => { errorNotification.classList.add('translate-x-[120%]'); }, 3000);
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Изпрати запитване';
-            }
-        });
-
-        // --- Tooltip Logic ---
-        const tooltipContainer = document.getElementById('tooltip-container');
-        const tooltip = document.getElementById('tooltip');
-
-        tooltipContainer.addEventListener('mouseenter', () => {
-            tooltip.classList.remove('hidden');
-        });
-        tooltipContainer.addEventListener('mouseleave', () => {
-            tooltip.classList.add('hidden');
-        });
-
-        // --- Business Card Modal Logic ---
-        const businessCardModal = document.getElementById('businessCardModal');
-        const openBusinessCardBtn = document.getElementById('openBusinessCard');
-        const closeBusinessCardBtn = document.getElementById('closeBusinessCard');
-        const modalContent = businessCardModal.querySelector('.modal-content');
-
-        function openModal() {
-            document.body.style.overflow = 'hidden';
-            businessCardModal.classList.remove('hidden');
-            setTimeout(() => {
-                businessCardModal.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-95');
-            }, 10);
+            handlePropertyTypeChange();
         }
 
-        function closeModal() {
-            document.body.style.overflow = '';
-            businessCardModal.classList.add('opacity-0');
-            modalContent.classList.add('scale-95');
-            setTimeout(() => {
+        function handlePropertyTypeChange() {
+            const propertyTypeDropdown = document.getElementById('property-type');
+            const selectedOption = propertyTypeDropdown.options[propertyTypeDropdown.selectedIndex];
+            const isLand = selectedOption.getAttribute('data-translate-key') === 'property_type_parcel';
+
+            const bedroomsContainer = document.getElementById('bedrooms-container');
+            const parkingContainer = document.getElementById('parking-container');
+            const budgetContainer = document.getElementById('budget-container');
+            
+            const sellerParkingContainer = document.getElementById('seller-parking-container');
+            const yearBuiltContainer = document.getElementById('year-built-container');
+            const buildingTypeContainer = document.getElementById('building-type-container');
+            
+            const isBuyer = document.getElementById('role-buyer').checked;
+
+            if (isLand) {
+                bedroomsContainer.classList.add('hidden');
+                if (isBuyer) {
+                    parkingContainer.classList.add('hidden');
+                } else { // isSeller
+                    sellerParkingContainer.classList.add('hidden');
+                    yearBuiltContainer.classList.add('hidden');
+                    buildingTypeContainer.classList.add('hidden');
+                }
+            } else {
+                bedroomsContainer.classList.remove('hidden');
+                if (isBuyer) {
+                    parkingContainer.classList.remove('hidden');
+                } else { // isSeller
+                    sellerParkingContainer.classList.remove('hidden');
+                    yearBuiltContainer.classList.remove('hidden');
+                    buildingTypeContainer.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Initialize maps and set initial form state when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleFormSections();
+            handlePropertyTypeChange();
+
+            document.getElementById('lang-bg').addEventListener('click', () => setLanguage('bg'));
+            document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+            document.getElementById('property-type').addEventListener('change', handlePropertyTypeChange);
+            document.querySelectorAll('input[name="user_role"]').forEach(radio => {
+                radio.addEventListener('change', toggleFormSections);
+            });
+
+
+            setLanguage('bg');
+
+            // Business Card Modal Logic
+            const businessCardIcon = document.getElementById('openBusinessCard');
+            const businessCardModal = document.getElementById('business-card-modal');
+            const closeBusinessCardModal = document.getElementById('close-business-card-modal');
+
+            businessCardIcon.addEventListener('click', () => {
+                businessCardModal.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            });
+
+            const closeCardModal = () => {
                 businessCardModal.classList.add('hidden');
-            }, 300);
-        }
-
-        openBusinessCardBtn.addEventListener('click', openModal);
-        closeBusinessCardBtn.addEventListener('click', closeModal);
-        businessCardModal.addEventListener('click', (e) => {
-            if (e.target === businessCardModal) {
-                closeModal();
+                document.body.classList.remove('modal-open');
             }
-        });
-        
-        const contactAgentEmailBtn = document.getElementById('contactAgentEmail');
-        const contactNameInput = document.getElementById('contactName');
 
-        contactAgentEmailBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            closeModal();
-            
-            setTimeout(() => {
-                contactForm.scrollIntoView({ behavior: 'smooth' });
-                contactNameInput.focus();
-            }, 300);
-        });
+            closeBusinessCardModal.addEventListener('click', closeCardModal);
+            businessCardModal.addEventListener('click', (e) => {
+                if(e.target === businessCardModal) {
+                    closeCardModal();
+                }
+            });
 
+
+            // Handle Form Submission with AJAX
+            const form = document.getElementById('real-estate-inquiry-form');
+            const submitButton = document.getElementById('submit-button');
+            const errorModal = document.getElementById('error-modal');
+            const closeErrorModalBtn = document.getElementById('close-error-modal-btn');
+
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault(); // Stop default form submission
+
+                const originalButtonText = submitButton.innerHTML;
+                submitButton.disabled = true;
+                submitButton.innerHTML = translations[currentLang].submit_button_sending;
+
+                const formData = new FormData(form);
+                const formAction = form.getAttribute('action');
+
+                fetch(formAction, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        const formContainer = document.getElementById('form-container');
+                        const successTitle = translations[currentLang].success_title;
+                        const successMessage = translations[currentLang].success_message;
+                        formContainer.innerHTML = `<div class="text-center p-8"><h2 class="text-2xl font-bold text-green-600">${successTitle}</h2><p class="text-gray-600 mt-4">${successMessage}</p></div>`;
+                    } else {
+                        response.json().then(data => {
+                            console.error("Formspree error:", data);
+                            errorModal.classList.remove('hidden');
+                        }).catch(() => {
+                            errorModal.classList.remove('hidden');
+                        });
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }
+                })
+                .catch(error => {
+                    console.error("Network error:", error);
+                    errorModal.classList.remove('hidden');
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                });
+            });
+
+            closeErrorModalBtn.addEventListener('click', function() {
+                errorModal.classList.add('hidden');
+            });
+        });
     </script>
+
 </body>
 </html>
