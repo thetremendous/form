@@ -821,47 +821,44 @@
             const closeErrorModalBtn = document.getElementById('close-error-modal-btn');
 
             form.addEventListener('submit', async function(event) {
-                event.preventDefault();
+    event.preventDefault(); // Stop default form submission
 
-                const originalButtonText = submitButton.innerHTML;
-                submitButton.disabled = true;
-                submitButton.innerHTML = translations[currentLang].submit_button_sending;
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = translations[currentLang].submit_button_sending;
 
-                const formData = new FormData(form);
-                const formAction = form.getAttribute('action');
+    const formData = new FormData(form);
+    const formAction = form.getAttribute('action');
 
-                fetch(formAction, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        const formContainer = document.getElementById('form-container');
-                        const successTitle = translations[currentLang].success_title;
-                        const successMessage = translations[currentLang].success_message;
-                        formContainer.innerHTML = `<div class="text-center p-8"><h2 class="text-2xl font-bold" style="color: var(--color-accent);">${successTitle}</h2><p class="p-themed mt-4">${successMessage}</p></div>`;
-                    } else {
-                        response.json().then(data => {
-                            console.error("Formspree error:", data);
-                            errorModal.classList.remove('hidden');
-                        }).catch(() => {
-                            errorModal.classList.remove('hidden');
-                        });
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = originalButtonText;
-                    }
-                })
-                .catch(error => {
-                    console.error("Network error:", error);
-                    errorModal.classList.remove('hidden');
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalButtonText;
-                });
+    // MODIFICATION: Remove the 'headers' object
+    fetch(formAction, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            const formContainer = document.getElementById('form-container');
+            const successTitle = translations[currentLang].success_title;
+            const successMessage = translations[currentLang].success_message;
+            formContainer.innerHTML = `<div class="text-center p-8"><h2 class="text-2xl font-bold" style="color: var(--color-accent);">${successTitle}</h2><p class="p-themed mt-4">${successMessage}</p></div>`;
+        } else {
+            response.json().then(data => {
+                console.error("Formspree error:", data);
+                errorModal.classList.remove('hidden');
+            }).catch(() => {
+                errorModal.classList.remove('hidden');
             });
-
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
+        }
+    })
+    .catch(error => {
+        console.error("Network error:", error);
+        errorModal.classList.remove('hidden');
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
+    });
+});
             closeErrorModalBtn.addEventListener('click', function() {
                 errorModal.classList.add('hidden');
             });
