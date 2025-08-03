@@ -4,18 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Формуляр за запитване за имот</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter for body and Playfair Display for headlines -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
-    <!-- GSAP for Scrollytelling Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollTrigger.min.js"></script>
-    <!-- NOTE: Google Places API requires a key. Replace YOUR_API_KEY with your actual key. -->
-    
-    
     <style>
         /* Custom styles to enhance the form with a dynamic color palette and new typography */
         :root {
@@ -24,7 +18,7 @@
             --color-text-primary: #333333; /* Charcoal */
             --color-text-secondary: #6b7280; /* Soft Gray */
             --color-border: #d1d5db; /* Soft Gray */
-            
+
             /* Default Accent Color (will be overridden by user selection) */
             --color-accent: #0ea5e9; /* Vibrant Sky Blue */
             --color-accent-hover: #0284c7;
@@ -40,6 +34,52 @@
             color: var(--color-text-primary);
         }
 
+        /* Hero Section Styles */
+        .hero-section {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+            color: white;
+        }
+
+        .hero-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        .hero-text {
+            z-index: 3;
+            position: relative;
+        }
+
+        .form-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
         .form-container-themed {
             background-color: var(--color-surface);
         }
@@ -47,7 +87,7 @@
         .border-themed {
             border-color: var(--color-border);
         }
-        
+
         .h-themed {
              color: var(--color-text-primary);
              font-family: var(--font-headline);
@@ -69,7 +109,7 @@
             border-color: var(--color-border);
             color: var(--color-text-secondary);
         }
-        
+
         input[type="radio"]:checked + .user-role-label {
             background-color: var(--color-accent);
             color: white;
@@ -84,7 +124,7 @@
             background-color: var(--color-accent);
             color: white;
         }
-        
+
         .form-input-themed {
             border-color: var(--color-border);
         }
@@ -93,11 +133,11 @@
             --tw-ring-color: var(--color-accent-ring);
             border-color: var(--color-accent);
         }
-        
+
         .checkbox-themed {
              color: var(--color-accent);
         }
-        
+
         .submit-button-themed {
             background-color: var(--color-accent);
             color: white;
@@ -113,17 +153,17 @@
             opacity: 0.7;
             cursor: not-allowed;
         }
-        
+
         .modal-open {
             overflow: hidden;
         }
-        
+
         /* Initial state for scroll animations */
         .scroll-reveal {
             opacity: 0;
             transform: translateY(30px);
         }
-        
+
         /* Progress Bar */
         .progress-bar-container {
             width: 100%;
@@ -139,7 +179,7 @@
             border-radius: 9999px;
             transition: width 0.4s ease;
         }
-        
+
         /* Real-time validation styles */
         .validation-icon {
             position: absolute;
@@ -149,270 +189,254 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+<body>
 
-    <div id="form-container" class="form-container-themed w-full max-w-4xl rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 relative">
-        
-        <!-- Top Icons -->
-        <div class="absolute top-6 left-6 flex gap-3">
-            <button id="openBusinessCard" class="w-16 h-16 rounded-full bg-cover border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-100" style="background-image: url('https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg'); background-position: center 25%;" aria-label="Open Business Card"></button>
-            <button id="openColorPicker" class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-100" aria-label="Change Theme Color">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                </svg>
-            </button>
+    <header class="hero-section">
+        <div class="hero-overlay"></div>
+        <video autoplay loop muted playsinline class="hero-video">
+            <source src="your-video.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="hero-text p-4">
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white" data-translate-key="heading_title1" style="font-family: var(--font-headline);"></h1>
+            <p class="mt-4 text-lg md:text-xl text-gray-200 max-w-2xl mx-auto" data-translate-key="heading_title2"></p>
         </div>
+    </header>
 
-        <!-- Language Switcher -->
-        <div class="lang-switcher flex justify-end mb-4">
-            <div class="inline-flex rounded-md shadow-sm" role="group">
-                <button type="button" id="lang-bg" class="px-4 py-2 text-sm font-medium bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 focus:z-10 focus:ring-2">
-                    BG
-                </button>
-                <button type="button" id="lang-en" class="px-4 py-2 text-sm font-medium bg-white border-t border-b border-r border-gray-200 rounded-r-lg hover:bg-gray-100 focus:z-10 focus:ring-2">
-                    EN
+    <main class="form-section">
+        <div id="form-container" class="form-container-themed w-full max-w-4xl rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 relative">
+
+            <div class="absolute top-6 left-6 flex gap-3">
+                <button id="openBusinessCard" class="w-16 h-16 rounded-full bg-cover border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-100" style="background-image: url('https://i.ibb.co/RpjmSmGd/485729087-122205037196106247-8647253442657459283-n.jpg'); background-position: center 25%;" aria-label="Open Business Card"></button>
+                <button id="openColorPicker" class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-slate-600 hover:border-sky-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-100" aria-label="Change Theme Color">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
                 </button>
             </div>
-        </div>
 
-        <div class="text-center mb-8 scroll-reveal">
-            <h1 class="h-themed text-4xl sm:text-5xl" data-translate-key="main_title">Запитване за имот</h1>
-            <p class="p-themed mt-4 text-lg" data-translate-key="main_subtitle">Моля, попълнете формуляра по-долу и ние ще се свържем с вас скоро.</p>
-        </div>
-        
-        <!-- Progress Bar -->
-        <div class="progress-bar-container scroll-reveal">
-            <div id="progress-bar" class="progress-bar"></div>
-        </div>
-
-        <!-- The form now points to your specific Formspree endpoint -->
-        <form id="real-estate-inquiry-form" action="https://formspree.io/f/mjkrdyrp" method="POST" enctype="multipart/form-data">
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Box 1: User Role -->
-                <div class="p-6 rounded-lg border border-themed scroll-reveal" data-step="1">
-                    <h2 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="user_role_title">Вие сте...</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <input type="radio" id="role-buyer" name="user_role" value="Buyer" checked onchange="toggleFormSections()">
-                            <label for="role-buyer" class="user-role-label flex items-center justify-center w-full p-4 rounded-lg cursor-pointer text-lg font-medium" data-translate-key="role_buyer">
-                                Купувач
-                            </label>
-                        </div>
-                        <div>
-                            <input type="radio" id="role-seller" name="user_role" value="Seller" onchange="toggleFormSections()">
-                            <label for="role-seller" class="user-role-label flex items-center justify-center w-full p-4 rounded-lg cursor-pointer text-lg font-medium" data-translate-key="role_seller">
-                                Продавач
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Box 2: Property Details -->
-                <div class="p-6 rounded-lg border border-themed scroll-reveal" data-step="1">
-                    <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="property_details_title">Детайли за имота</h3>
-                    <div class="grid grid-cols-1 gap-6">
-                        <!-- Property Type -->
-                        <div>
-                            <label for="property-type" id="property-type-label" class="block text-sm font-medium p-themed mb-1" data-translate-key="property_type_label_buyer">Какъв имот търсите?</label>
-                            <select name="property_type" id="property-type" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
-                                <option data-translate-key="property_type_house">Къща</option>
-                                <option data-translate-key="property_type_flat" selected>Апартамент</option>
-                                <option data-translate-key="property_type_parcel">Парцел</option>
-                                <option data-translate-key="property_type_business_building">Бизнес сграда</option>
-                                <option data-translate-key="property_type_living_building">Жилищна сграда</option>
-                                <option data-translate-key="property_type_vacational_property">Ваканционен имот</option>
-                            </select>
-                        </div>
-                        <!-- Square Meters -->
-                        <div>
-                            <label for="sqm" id="sqm-label" class="block text-sm font-medium p-themed mb-1" data-translate-key="sqm_label_buyer">Желана квадратура (м²)</label>
-                            <input type="text" name="sqm" id="sqm" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="sqm_placeholder" placeholder="напр. 120-150">
-                        </div>
-                        <!-- Bedrooms -->
-                        <div id="bedrooms-container">
-                            <label for="bedrooms" class="block text-sm font-medium p-themed mb-1" data-translate-key="bedrooms_label">Брой спални</label>
-                            <input type="number" name="bedrooms" id="bedrooms" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="bedrooms_placeholder" placeholder="напр. 3">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Box 3: Buyer/Seller Details (Spanning full width) -->
-                <div class="lg:col-span-2 p-6 rounded-lg border border-themed scroll-reveal" data-step="2">
-                    <div id="buyer-section">
-                        <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="buyer_info_title">Информация за купувача</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Budget -->
-                            <div id="budget-container">
-                                <label for="budget-text" class="block text-sm font-medium p-themed mb-1" data-translate-key="budget_label_buyer">Какъв е Вашият бюджет?</label>
-                                <input type="text" name="budget" id="budget-text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="budget_placeholder" placeholder="напр. 125000">
-                            </div>
-                            <!-- Area of Living -->
-                            <div>
-                                <label for="area" class="block text-sm font-medium p-themed mb-1" data-translate-key="area_label">Предпочитан(и) район(и)</label>
-                                <input type="text" name="area" id="area" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="area_placeholder" placeholder="напр. Център, Северни квартали">
-                            </div>
-                            <!-- Financing Status -->
-                            <div>
-                                <label for="financing-status" class="block text-sm font-medium p-themed mb-1" data-translate-key="financing_status_label">Статус на финансиране</label>
-                                <select name="financing_status" id="financing-status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
-                                    <option data-translate-key="financing_status_preapproved">Предварително одобрен за кредит</option>
-                                    <option data-translate-key="financing_status_cash">Плащане в брой</option>
-                                    <option data-translate-key="financing_status_need_loan">Трябва да кандидатствам за кредит</option>
-                                    <option data-translate-key="financing_status_starting">Проучвам възможности</option>
-                                </select>
-                            </div>
-                            <!-- Purchase Timeline -->
-                            <div>
-                                <label for="purchase-timeline" class="block text-sm font-medium p-themed mb-1" data-translate-key="purchase_timeline_label">Кога планирате да купите?</label>
-                                <select name="purchase_timeline" id="purchase-timeline" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
-                                    <option data-translate-key="timeline_immediately">Веднага</option>
-                                    <option data-translate-key="timeline_1_3_months">1-3 месеца</option>
-                                    <option data-translate-key="timeline_3_6_months">3-6 месеца</option>
-                                    <option data-translate-key="timeline_6_plus_months">6+ месеца</option>
-                                </select>
-                            </div>
-                            <!-- Must-Have Features -->
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium p-themed mb-2" data-translate-key="must_have_features_label">Задължителни екстри</label>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                    <div class="flex items-center">
-                                        <input id="feature-balcony" name="features[]" value="Balcony" type="checkbox" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
-                                        <label for="feature-balcony" class="ml-2 block text-sm" data-translate-key="feature_balcony">Балкон/Тераса</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input id="feature-renovated" name="features[]" value="Renovated" type="checkbox" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
-                                        <label for="feature-renovated" class="ml-2 block text-sm" data-translate-key="feature_renovated">Реновиран</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input id="feature-pet-friendly" name="features[]" value="Pet-Friendly" type="checkbox" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
-                                        <label for="feature-pet-friendly" class="ml-2 block text-sm" data-translate-key="feature_pet_friendly">Подходящ за домашни любимци</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Parking/Garage Options -->
-                            <div id="parking-container" class="md:col-span-2">
-                                <label class="block text-sm font-medium p-themed mb-2" data-translate-key="parking_needs_label">Нужди за паркиране</label>
-                                <div class="flex items-center space-x-6">
-                                    <div class="flex items-center">
-                                        <input id="buyer-garage" name="buyer_needs_garage" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
-                                        <label for="buyer-garage" class="ml-2 block text-sm" data-translate-key="garage_label">Гараж</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input id="buyer-parking" name="buyer_needs_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
-                                        <label for="buyer-parking" class="ml-2 block text-sm" data-translate-key="parking_spot_label">Паркомясто</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="seller-section" class="hidden">
-                        <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="seller_info_title">Информация за продавача</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Year of Building -->
-                            <div id="year-built-container">
-                                <label for="year-built" class="block text-sm font-medium p-themed mb-1" data-translate-key="year_built_label">Година на строеж</label>
-                                <input type="number" name="year_built" id="year-built" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="year_built_placeholder" placeholder="напр. 1995">
-                            </div>
-                            <!-- Type of Building -->
-                            <div id="building-type-container">
-                                <label for="building-type" class="block text-sm font-medium p-themed mb-1" data-translate-key="building_type_label">Тип на сградата</label>
-                                <select name="building_type" id="building-type" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
-                                    <option data-translate-key="building_type_tuhla">Тухла</option>
-                                    <option data-translate-key="building_type_epk">ЕПК</option>
-                                    <option data-translate-key="building_type_panel">Панел</option>
-                                </select>
-                            </div>
-                             <!-- Property Condition -->
-                            <div>
-                                <label for="property-condition" class="block text-sm font-medium p-themed mb-1" data-translate-key="property_condition_label">Състояние на имота</label>
-                                <select name="property_condition" id="property-condition" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
-                                    <option data-translate-key="condition_move_in">Готов за нанасяне</option>
-                                    <option data-translate-key="condition_minor_updates">Нуждае се от леки подобрения</option>
-                                    <option data-translate-key="condition_major_renovation">Нуждае се от основен ремонт</option>
-                                </select>
-                            </div>
-                             <!-- Reason for Selling -->
-                            <div>
-                                <label for="reason-for-selling" class="block text-sm font-medium p-themed mb-1" data-translate-key="reason_for_selling_label">Причина за продажба (по желание)</label>
-                                <input type="text" name="reason_for_selling" id="reason-for-selling" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed">
-                            </div>
-                             <!-- Photo Upload -->
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium p-themed mb-1" data-translate-key="photo_upload_label">Качете снимки на имота</label>
-                                <input type="file" name="property_photos[]" id="property-photos" multiple accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                                <div id="photo-previews" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-                            </div>
-                            <!-- Parking/Garage Options -->
-                            <div id="seller-parking-container" class="md:col-span-2">
-                                <label class="block text-sm font-medium p-themed mb-2" data-translate-key="property_features_label">Характеристики на имота</label>
-                                <div class="flex items-center space-x-6">
-                                    <div class="flex items-center">
-                                        <input id="seller-garage" name="property_has_garage" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
-                                        <label for="seller-garage" class="ml-2 block text-sm" data-translate-key="garage_label_seller">Гараж</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input id="seller-parking" name="property_has_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
-                                        <label for="seller-parking" class="ml-2 block text-sm" data-translate-key="parking_spot_label_seller">Паркомясто</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Sell within 6 months -->
-                            <div class="md:col-span-2">
-                                <div class="flex items-start">
-                                    <div class="flex items-center h-5">
-                                        <input id="sell-within-6-months" name="sell_within_6_months" type="checkbox" value="Yes" class="focus:ring-2 h-4 w-4 border-gray-300 rounded checkbox-themed">
-                                    </div>
-                                    <div class="ml-3 text-sm">
-                                        <label for="sell-within-6-months" class="font-medium" data-translate-key="sell_within_6_months_label">Искам да продам в рамките на следващите 6 месеца</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Box 4: Contact Details (Spanning full width) -->
-                <div class="lg:col-span-2 p-6 rounded-lg border border-themed scroll-reveal" data-step="3">
-                    <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="contact_details_title">Данни за контакт</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Name -->
-                        <div>
-                            <label for="name" class="block text-sm font-medium p-themed mb-1" data-translate-key="full_name_label">Вашите имена</label>
-                            <input type="text" name="name" id="name" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="full_name_placeholder" placeholder="Иван Иванов">
-                        </div>
-                        <!-- Phone -->
-                        <div class="relative">
-                            <label for="phone" class="block text-sm font-medium p-themed mb-1" data-translate-key="phone_label">Телефонен номер</label>
-                            <input type="tel" name="phone" id="phone" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="phone_placeholder" placeholder="+359 88 123 4567">
-                            <span id="phone-validation-icon" class="validation-icon hidden"></span>
-                        </div>
-                        <!-- Email -->
-                        <div class="md:col-span-2 relative">
-                            <label for="email" class="block text-sm font-medium p-themed mb-1" data-translate-key="email_label">Имейл адрес</label>
-                            <input type="email" name="email" id="email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="email_placeholder" placeholder="vasia@primer.com">
-                            <span id="email-validation-icon" class="validation-icon hidden"></span>
-                        </div>
-                        <!-- Additional Information -->
-                        <div class="md:col-span-2">
-                            <label for="message" class="block text-sm font-medium p-themed mb-1" data-translate-key="additional_info_label">Допълнителна информация</label>
-                            <textarea name="message" id="message" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="additional_info_placeholder" placeholder="Има ли нещо друго, което бихте искали да споделите?"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Box 5: Submission Button -->
-                <div class="lg:col-span-2 text-center" data-step="4">
-                    <button type="submit" id="submit-button" class="submit-button-themed w-full sm:w-auto font-bold py-3 px-12 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4" data-translate-key="submit_button">
-                        Изпрати запитване
+            <div class="lang-switcher flex justify-end mb-4">
+                <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <button type="button" id="lang-bg" class="px-4 py-2 text-sm font-medium bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 focus:z-10 focus:ring-2">
+                        BG
+                    </button>
+                    <button type="button" id="lang-en" class="px-4 py-2 text-sm font-medium bg-white border-t border-b border-r border-gray-200 rounded-r-lg hover:bg-gray-100 focus:z-10 focus:ring-2">
+                        EN
                     </button>
                 </div>
             </div>
-        </form>
-    </div>
-    
-    <!-- Error Modal -->
+
+            <div class="text-center mb-8 scroll-reveal">
+                <h1 class="h-themed text-4xl sm:text-5xl" data-translate-key="main_title">Запитване за имот</h1>
+                <p class="p-themed mt-4 text-lg" data-translate-key="main_subtitle">Моля, попълнете формуляра по-долу и ние ще се свържем с вас скоро.</p>
+            </div>
+
+            <div class="progress-bar-container scroll-reveal">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+
+            <form id="real-estate-inquiry-form" action="https://formspree.io/f/mjkrdyrp" method="POST" enctype="multipart/form-data">
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="p-6 rounded-lg border border-themed scroll-reveal" data-step="1">
+                        <h2 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="user_role_title">Вие сте...</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <input type="radio" id="role-buyer" name="user_role" value="Buyer" checked onchange="toggleFormSections()">
+                                <label for="role-buyer" class="user-role-label flex items-center justify-center w-full p-4 rounded-lg cursor-pointer text-lg font-medium" data-translate-key="role_buyer">
+                                    Купувач
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" id="role-seller" name="user_role" value="Seller" onchange="toggleFormSections()">
+                                <label for="role-seller" class="user-role-label flex items-center justify-center w-full p-4 rounded-lg cursor-pointer text-lg font-medium" data-translate-key="role_seller">
+                                    Продавач
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 rounded-lg border border-themed scroll-reveal" data-step="1">
+                        <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="property_details_title">Детайли за имота</h3>
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label for="property-type" id="property-type-label" class="block text-sm font-medium p-themed mb-1" data-translate-key="property_type_label_buyer">Какъв имот търсите?</label>
+                                <select name="property_type" id="property-type" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                    <option data-translate-key="property_type_house">Къща</option>
+                                    <option data-translate-key="property_type_flat" selected>Апартамент</option>
+                                    <option data-translate-key="property_type_parcel">Парцел</option>
+                                    <option data-translate-key="property_type_business_building">Бизнес сграда</option>
+                                    <option data-translate-key="property_type_living_building">Жилищна сграда</option>
+                                    <option data-translate-key="property_type_vacational_property">Ваканционен имот</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="sqm" id="sqm-label" class="block text-sm font-medium p-themed mb-1" data-translate-key="sqm_label_buyer">Желана квадратура (м²)</label>
+                                <input type="text" name="sqm" id="sqm" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="sqm_placeholder" placeholder="напр. 120-150">
+                            </div>
+                            <div id="bedrooms-container">
+                                <label for="bedrooms" class="block text-sm font-medium p-themed mb-1" data-translate-key="bedrooms_label">Брой спални</label>
+                                <input type="number" name="bedrooms" id="bedrooms" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="bedrooms_placeholder" placeholder="напр. 3">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 p-6 rounded-lg border border-themed scroll-reveal" data-step="2">
+                        <div id="buyer-section">
+                            <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="buyer_info_title">Информация за купувача</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div id="budget-container">
+                                    <label for="budget-text" class="block text-sm font-medium p-themed mb-1" data-translate-key="budget_label_buyer">Какъв е Вашият бюджет?</label>
+                                    <input type="text" name="budget" id="budget-text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="budget_placeholder" placeholder="напр. 125000">
+                                </div>
+                                <div>
+                                    <label for="area" class="block text-sm font-medium p-themed mb-1" data-translate-key="area_label">Предпочитан(и) район(и)</label>
+                                    <input type="text" name="area" id="area" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="area_placeholder" placeholder="напр. Център, Северни квартали">
+                                </div>
+                                <div>
+                                    <label for="financing-status" class="block text-sm font-medium p-themed mb-1" data-translate-key="financing_status_label">Статус на финансиране</label>
+                                    <select name="financing_status" id="financing-status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                        <option data-translate-key="financing_status_preapproved">Предварително одобрен за кредит</option>
+                                        <option data-translate-key="financing_status_cash">Плащане в брой</option>
+                                        <option data-translate-key="financing_status_need_loan">Трябва да кандидатствам за кредит</option>
+                                        <option data-translate-key="financing_status_starting">Проучвам възможности</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="purchase-timeline" class="block text-sm font-medium p-themed mb-1" data-translate-key="purchase_timeline_label">Кога планирате да купите?</label>
+                                    <select name="purchase_timeline" id="purchase-timeline" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                        <option data-translate-key="timeline_immediately">Веднага</option>
+                                        <option data-translate-key="timeline_1_3_months">1-3 месеца</option>
+                                        <option data-translate-key="timeline_3_6_months">3-6 месеца</option>
+                                        <option data-translate-key="timeline_6_plus_months">6+ месеца</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium p-themed mb-2" data-translate-key="must_have_features_label">Задължителни екстри</label>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                        <div class="flex items-center">
+                                            <input id="feature-balcony" name="features[]" value="Balcony" type="checkbox" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                            <label for="feature-balcony" class="ml-2 block text-sm" data-translate-key="feature_balcony">Балкон/Тераса</label>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input id="feature-renovated" name="features[]" value="Renovated" type="checkbox" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                            <label for="feature-renovated" class="ml-2 block text-sm" data-translate-key="feature_renovated">Реновиран</label>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input id="feature-pet-friendly" name="features[]" value="Pet-Friendly" type="checkbox" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                            <label for="feature-pet-friendly" class="ml-2 block text-sm" data-translate-key="feature_pet_friendly">Подходящ за домашни любимци</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="parking-container" class="md:col-span-2">
+                                    <label class="block text-sm font-medium p-themed mb-2" data-translate-key="parking_needs_label">Нужди за паркиране</label>
+                                    <div class="flex items-center space-x-6">
+                                        <div class="flex items-center">
+                                            <input id="buyer-garage" name="buyer_needs_garage" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                            <label for="buyer-garage" class="ml-2 block text-sm" data-translate-key="garage_label">Гараж</label>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input id="buyer-parking" name="buyer_needs_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                            <label for="buyer-parking" class="ml-2 block text-sm" data-translate-key="parking_spot_label">Паркомясто</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="seller-section" class="hidden">
+                            <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="seller_info_title">Информация за продавача</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div id="year-built-container">
+                                    <label for="year-built" class="block text-sm font-medium p-themed mb-1" data-translate-key="year_built_label">Година на строеж</label>
+                                    <input type="number" name="year_built" id="year-built" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="year_built_placeholder" placeholder="напр. 1995">
+                                </div>
+                                <div id="building-type-container">
+                                    <label for="building-type" class="block text-sm font-medium p-themed mb-1" data-translate-key="building_type_label">Тип на сградата</label>
+                                    <select name="building_type" id="building-type" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                        <option data-translate-key="building_type_tuhla">Тухла</option>
+                                        <option data-translate-key="building_type_epk">ЕПК</option>
+                                        <option data-translate-key="building_type_panel">Панел</option>
+                                    </select>
+                                </div>
+                                 <div>
+                                    <label for="property-condition" class="block text-sm font-medium p-themed mb-1" data-translate-key="property_condition_label">Състояние на имота</label>
+                                    <select name="property_condition" id="property-condition" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed bg-white">
+                                        <option data-translate-key="condition_move_in">Готов за нанасяне</option>
+                                        <option data-translate-key="condition_minor_updates">Нуждае се от леки подобрения</option>
+                                        <option data-translate-key="condition_major_renovation">Нуждае се от основен ремонт</option>
+                                    </select>
+                                </div>
+                                 <div>
+                                    <label for="reason-for-selling" class="block text-sm font-medium p-themed mb-1" data-translate-key="reason_for_selling_label">Причина за продажба (по желание)</label>
+                                    <input type="text" name="reason_for_selling" id="reason-for-selling" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed">
+                                </div>
+                                 <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium p-themed mb-1" data-translate-key="photo_upload_label">Качете снимки на имота</label>
+                                    <input type="file" name="property_photos[]" id="property-photos" multiple accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                                    <div id="photo-previews" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+                                </div>
+                                <div id="seller-parking-container" class="md:col-span-2">
+                                    <label class="block text-sm font-medium p-themed mb-2" data-translate-key="property_features_label">Характеристики на имота</label>
+                                    <div class="flex items-center space-x-6">
+                                        <div class="flex items-center">
+                                            <input id="seller-garage" name="property_has_garage" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                            <label for="seller-garage" class="ml-2 block text-sm" data-translate-key="garage_label_seller">Гараж</label>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input id="seller-parking" name="property_has_parking_spot" type="checkbox" value="Yes" class="h-4 w-4 border-gray-300 rounded focus:ring-2 checkbox-themed">
+                                            <label for="seller-parking" class="ml-2 block text-sm" data-translate-key="parking_spot_label_seller">Паркомясто</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="sell-within-6-months" name="sell_within_6_months" type="checkbox" value="Yes" class="focus:ring-2 h-4 w-4 border-gray-300 rounded checkbox-themed">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="sell-within-6-months" class="font-medium" data-translate-key="sell_within_6_months_label">Искам да продам в рамките на следващите 6 месеца</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 p-6 rounded-lg border border-themed scroll-reveal" data-step="3">
+                        <h3 class="h-section-themed text-xl font-semibold mb-4" data-translate-key="contact_details_title">Данни за контакт</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium p-themed mb-1" data-translate-key="full_name_label">Вашите имена</label>
+                                <input type="text" name="name" id="name" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="full_name_placeholder" placeholder="Иван Иванов">
+                            </div>
+                            <div class="relative">
+                                <label for="phone" class="block text-sm font-medium p-themed mb-1" data-translate-key="phone_label">Телефонен номер</label>
+                                <input type="tel" name="phone" id="phone" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="phone_placeholder" placeholder="+359 88 123 4567">
+                                <span id="phone-validation-icon" class="validation-icon hidden"></span>
+                            </div>
+                            <div class="md:col-span-2 relative">
+                                <label for="email" class="block text-sm font-medium p-themed mb-1" data-translate-key="email_label">Имейл адрес</label>
+                                <input type="email" name="email" id="email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="email_placeholder" placeholder="vasia@primer.com">
+                                <span id="email-validation-icon" class="validation-icon hidden"></span>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="message" class="block text-sm font-medium p-themed mb-1" data-translate-key="additional_info_label">Допълнителна информация</label>
+                                <textarea name="message" id="message" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-2 form-input-themed" data-translate-key="additional_info_placeholder" placeholder="Има ли нещо друго, което бихте искали да споделите?"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 text-center" data-step="4">
+                        <button type="submit" id="submit-button" class="submit-button-themed w-full sm:w-auto font-bold py-3 px-12 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4" data-translate-key="submit_button">
+                            Изпрати запитване
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
     <div id="error-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
             <div class="mt-3 text-center">
@@ -429,7 +453,6 @@
         </div>
     </div>
 
-    <!-- Business Card Modal -->
     <div id="business-card-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
         <div class="relative bg-white p-8 rounded-lg shadow-lg max-w-sm w-full text-center">
             <span id="close-business-card-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-3xl cursor-pointer font-bold">&times;</span>
@@ -445,7 +468,6 @@
         </div>
     </div>
 
-    <!-- Accent Color Picker Modal -->
     <div id="color-picker-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
         <div class="bg-white p-8 rounded-lg shadow-lg text-center">
             <h2 class="text-2xl font-bold h-themed" data-translate-key="color_picker_title">Choose Your Accent Color</h2>
@@ -464,12 +486,14 @@
     <script>
         // All JavaScript logic from the previous version remains here.
         // The new features are integrated below.
-        
+
         let currentLang = 'bg'; // To keep track of the current language
 
         // Translations object
         const translations = {
             en: {
+                heading_title1: 'Find your next home.',
+                heading_title2: 'Our journey to finding the perfect property starts here. Fill out the form below to get started.',
                 main_title: 'Real Estate Inquiry',
                 main_subtitle: 'Please fill out the form below and we will get back to you shortly.',
                 user_role_title: 'Are you a...',
@@ -552,6 +576,8 @@
                 photo_upload_label: 'Upload Property Photos',
             },
             bg: {
+                heading_title1: 'Намерете следващия си дом.',
+                heading_title2: 'Нашето пътешествие към намирането на перфектния имот започва тук. Попълнете формата по-долу, за да започнем търсене.',
                 main_title: 'Запитване за имот',
                 main_subtitle: 'Моля, попълнете формуляра по-долу и ние ще се свържем с вас скоро.',
                 user_role_title: 'Вие сте...',
@@ -639,7 +665,7 @@
             currentLang = lang;
             document.documentElement.lang = lang;
             document.title = lang === 'bg' ? 'Формуляр за запитване за имот' : 'Real Estate Inquiry Form';
-            
+
             const elements = document.querySelectorAll('[data-translate-key]');
             elements.forEach(el => {
                 const key = el.getAttribute('data-translate-key');
@@ -652,10 +678,10 @@
                     }
                 }
             });
-            
+
             document.getElementById('lang-bg').classList.toggle('active', lang === 'bg');
             document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-            
+
             toggleFormSections();
             handlePropertyTypeChange();
         }
@@ -665,7 +691,7 @@
             const sellerSection = document.getElementById('seller-section');
             const sqmLabel = document.getElementById('sqm-label');
             const propertyTypeLabel = document.getElementById('property-type-label');
-            
+
             if (document.getElementById('role-buyer').checked) {
                 buyerSection.classList.remove('hidden');
                 sellerSection.classList.add('hidden');
@@ -689,11 +715,11 @@
             const bedroomsContainer = document.getElementById('bedrooms-container');
             const parkingContainer = document.getElementById('parking-container');
             const budgetContainer = document.getElementById('budget-container');
-            
+
             const sellerParkingContainer = document.getElementById('seller-parking-container');
             const yearBuiltContainer = document.getElementById('year-built-container');
             const buildingTypeContainer = document.getElementById('building-type-container');
-            
+
             const isBuyer = document.getElementById('role-buyer').checked;
 
             if (isLand) {
@@ -749,7 +775,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            
+
             toggleFormSections();
             handlePropertyTypeChange();
 
@@ -759,7 +785,7 @@
             document.querySelectorAll('input[name="user_role"]').forEach(radio => {
                 radio.addEventListener('change', toggleFormSections);
             });
-            
+
             document.getElementById('real-estate-inquiry-form').addEventListener('input', updateProgressBar);
 
             setLanguage('bg');
@@ -776,7 +802,7 @@
                 const savedRing = localStorage.getItem('theme-accent-ring');
                 applyTheme(savedColor, savedHover, savedRing);
             }
-            
+
             openColorPicker.addEventListener('click', () => {
                  colorPickerModal.classList.remove('hidden');
                  document.body.classList.add('modal-open');
@@ -864,12 +890,12 @@
             });
 
             gsap.registerPlugin(ScrollTrigger);
-            
+
             gsap.utils.toArray('.scroll-reveal').forEach(elem => {
-                gsap.fromTo(elem, 
-                    { opacity: 0, y: 50 }, 
-                    { 
-                        opacity: 1, 
+                gsap.fromTo(elem,
+                    { opacity: 0, y: 50 },
+                    {
+                        opacity: 1,
                         y: 0,
                         duration: 1,
                         ease: 'power3.out',
@@ -929,7 +955,23 @@
             });
         });
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDOwoeU29qu1nkNeGP8WwVyyes2kj_X554&libraries=places&callback=initAutocomplete" async defer></script>
-
+    
+    <footer class="bg-white border-t border-themed mt-12 py-8">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+        <div class="flex justify-center items-center space-x-6 mb-4">
+            <a href="https://www.facebook.com/profile.php?id=61553187435652" class="social-icon" aria-label="Facebook">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="Instagram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069s-3.584-.011-4.85-.069c-3.252-.149-4.771-1.664-4.919-4.919-.058-1.265-.069-1.644-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919.058-1.265.069-1.645.069-4.85zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="LinkedIn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/></svg>
+            </a>
+        </div>
+        <p class="p-themed text-sm">&copy; 2024 Всички права запазени.</p>
+        <p class="p-themed text-xs mt-1">Real Estate Inquiry Platform</p>
+    </div>
+</footer>
 </body>
 </html>
